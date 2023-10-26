@@ -47,6 +47,7 @@
               ccls
               libevdev
               libunwind
+              pkg-config
               stdenv
               which
               zlib
