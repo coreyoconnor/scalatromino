@@ -44,8 +44,6 @@
             nativeBuildInputs = with pkgs; [
               boehmgc
               clang
-              ccls
-              libevdev
               libunwind
               pkg-config
               stdenv
