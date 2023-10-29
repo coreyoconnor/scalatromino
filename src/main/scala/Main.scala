@@ -9,7 +9,23 @@ class StateHolder:
   var state: GameState = GameState.init
   var priorMicros: Option[Long] = None
   var priorRenderMicros: Option[Long] = None
+  val events: collection.mutable.Buffer[GameEvent] = collection.mutable.Buffer.empty
 end StateHolder
+
+def keyvalToInput(keyval: guint): Option[GameInput] = {
+  val keybindings: PartialFunction[Int, GameInput] = {
+    // a and left
+    case 0x061 | 0x8fb => GameInput.Left
+    // d and right
+    case 0x064 | 0x8fd => GameInput.Right
+    // s and down
+    case 0x073 | 0x8fe => GameInput.Down
+    // w, space, and up
+    case 0x077 | 0x020 | 0x8fc => GameInput.Drop
+  }
+
+  keybindings.lift(keyval.value.toInt)
+}
 
 @main def example =
   gtk_init()
@@ -64,8 +80,9 @@ end StateHolder
           val deltaT = deltaMicros.toDouble / 1000000.0
           (!stateHolder).priorMicros = Some(micros)
 
-          val updatedState = GameState.update(deltaT, micros, (!stateHolder).state)
+          val updatedState = GameState.update(deltaT, micros, (!stateHolder).events.toSeq, (!stateHolder).state)
           (!stateHolder).state = updatedState
+          (!stateHolder).events.clear()
 
           gtk_widget_queue_draw(widget)
           gboolean(1)
@@ -109,6 +126,38 @@ end StateHolder
                                      data, GDestroyNotify(null))
 
       gtk_box_append(box.asPtr[GtkBox], drawingArea.asPtr[GtkWidget])
+
+      val gameAreaKeyController = gtk_event_controller_key_new()
+
+      val keyPressedCallback = CFuncPtr5.fromScalaFunction {
+        (_: Ptr[GtkEventControllerKey], keyval: guint, _: guint, _: GdkModifierType, data: gpointer) => {
+          val stateHolder = data.value.asPtr[StateHolder]
+          keyvalToInput(keyval) match {
+            case Some(input) => {
+              (!stateHolder).events += InputStart(input)
+              gboolean(1)
+            }
+            case None => gboolean(0)
+          }
+        }
+      }
+      val keyReleasedCallback = CFuncPtr5.fromScalaFunction {
+        (_: Ptr[GtkEventControllerKey], keyval: guint, _: guint, _: GdkModifierType, data: gpointer) => {
+          val stateHolder = data.value.asPtr[StateHolder]
+          keyvalToInput(keyval) match {
+            case Some(input) => {
+              (!stateHolder).events += InputStop(input)
+              gboolean(1)
+            }
+            case None => gboolean(0)
+          }
+        }
+      }
+      g_signal_connect(gameAreaKeyController, c"key-pressed", keyPressedCallback, data.value)
+      g_signal_connect(gameAreaKeyController, c"key-released", keyReleasedCallback, data.value)
+
+      gtk_event_controller_set_propagation_phase(gameAreaKeyController, GtkPropagationPhase.GTK_PHASE_CAPTURE)
+      gtk_widget_add_controller(window, gameAreaKeyController)
 
       gtk_widget_show(window)
   }
