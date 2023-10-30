@@ -27,5 +27,22 @@ object GameRenderer:
     cairo_set_source_rgb(cr, color._1, color._2, color._3)
     cairo_rectangle(cr, 0, 0, width, height)
     cairo_fill(cr)
+
+    for {
+      y <- 0 until state.grid.height
+      x <- 0 until state.grid.width
+    } {
+      if (state.grid(x, y).exists(_ != GridState.Empty)) {
+        cairo_set_source_rgb(cr, 0, 0, 0)
+        cairo_rectangle(cr, x * 10, y * 10, 10, 10)
+        cairo_fill(cr)
+      }
+    }
+
+    state.activePiece foreach { activePiece =>
+      cairo_set_source_rgb(cr, 1, 0, 0)
+      cairo_rectangle(cr, activePiece.posX * 10, activePiece.posY * 10, 10, 10)
+      cairo_fill(cr)
+    }
   }
 end GameRenderer
