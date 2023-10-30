@@ -84,7 +84,8 @@ object GameState:
   def update(deltaT: Double, micros: Long, events: Seq[GameEvent], state: GameState): GameState = {
     state.phase match {
       case GamePhase.NewActive => {
-        val piece = ActivePiece(Piece.S, 4, 0, Rotation.CW0)
+        val pieceType = scala.util.Random.shuffle(Piece.values).head
+        val piece = ActivePiece(pieceType, 4, 0, Rotation.CW0)
 
         if (state.grid.collides(piece)) {
           state.copy(phase = GamePhase.GameOver)
