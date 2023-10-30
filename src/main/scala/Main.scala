@@ -6,7 +6,7 @@ import libcairo.all.*
 import scala.scalanative.unsafe.*
 
 class StateHolder:
-  var state: GameState = GameState.init
+  var state: Option[GameState] = None
   var priorMicros: Option[Long] = None
   var priorRenderMicros: Option[Long] = None
   val events: collection.mutable.Buffer[GameEvent] = collection.mutable.Buffer.empty
@@ -19,7 +19,7 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
     // d and right
     case 0x064 | 0x8fd => GameInput.Right
     // s and down
-    case 0x073 | 0x8fe => GameInput.Down
+    case 0x073 | 0x8fe => GameInput.Rotate
     // w, space, and up
     case 0x077 | 0x020 | 0x8fc => GameInput.Drop
   }
@@ -48,16 +48,17 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
 
       gtk_window_set_child(window.asPtr[GtkWindow], box)
 
-      val button = gtk_button_new_with_label(c"Reset")
+      val button = gtk_button_new_with_label(c"Start")
 
-      val resetGame = CFuncPtr2.fromScalaFunction {
+      val startGame = CFuncPtr2.fromScalaFunction {
         (widget: Ptr[GtkWidget], data: gpointer) => {
           val stateHolder = data.value.asPtr[StateHolder]
-          (!stateHolder).state = GameState.init
+          val micros = g_get_monotonic_time().value
+          (!stateHolder).state = Some(GameState.init(micros))
         }
       }
 
-      g_signal_connect(button, c"clicked", resetGame, data.value)
+      g_signal_connect(button, c"clicked", startGame, data.value)
 
       gtk_box_append(box.asPtr[GtkBox], button)
 
@@ -80,8 +81,16 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
           val deltaT = deltaMicros.toDouble / 1000000.0
           (!stateHolder).priorMicros = Some(micros)
 
-          val updatedState = GameState.update(deltaT, micros, (!stateHolder).events.toSeq, (!stateHolder).state)
-          (!stateHolder).state = updatedState
+          (!stateHolder).state foreach { state =>
+            val updatedState = GameState.update(
+              deltaT,
+              micros,
+              (!stateHolder).events.toSeq,
+              state
+            )
+            (!stateHolder).state = Some(updatedState)
+          }
+
           (!stateHolder).events.clear()
 
           gtk_widget_queue_draw(widget)
@@ -101,7 +110,9 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
           (!stateHolder).priorMicros match {
             case None => {
               val micros = g_get_monotonic_time().value
-              GameRenderer.render(drawingArea, cr, width, height, (!stateHolder).state, 0, micros)
+              (!stateHolder).state foreach { state =>
+                GameRenderer.render(drawingArea, cr, width, height, state, 0, micros)
+              }
               (!stateHolder).priorMicros = Some(micros)
               (!stateHolder).priorRenderMicros = Some(micros)
             }
@@ -115,7 +126,9 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
               val deltaT = deltaMicros.toDouble / 1000000.0
               (!stateHolder).priorRenderMicros = Some(micros)
 
-              GameRenderer.render(drawingArea, cr, width, height, (!stateHolder).state, deltaT, micros)
+              (!stateHolder).state foreach { state =>
+                GameRenderer.render(drawingArea, cr, width, height, state, deltaT, micros)
+              }
             }
           }
         }

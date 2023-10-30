@@ -1,5 +1,5 @@
 enum GameInput:
-  case Left, Right, Down, Drop
+  case Left, Right, Rotate, Drop
 
 sealed trait GameEvent
 case class InputStart(input: GameInput) extends GameEvent
