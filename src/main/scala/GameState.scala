@@ -1,13 +1,3 @@
-import scala.runtime.AbstractFunction4
-enum GridState:
-  case Empty, Occupied
-
-case class Grid(
-  states: Seq[GridState],
-  width: Int,
-  height: Int
-)
-
 /** Grid is: Increasing X is to the right. Increasing Y is down.
  */
 object Grid:
@@ -21,6 +11,62 @@ object Grid:
   )
 end Grid
 
+enum GridState:
+  case Empty, Occupied
+
+case class Grid(
+  states: Seq[GridState],
+  width: Int,
+  height: Int
+) {
+  def collides(piece: ActivePiece): Boolean =
+    collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY)
+
+  def collides(layout: PieceLayout, posX: Int, posY: Int): Boolean = {
+    val occupancy = for {
+      y <- 0 until layout.height
+      x <- 0 until layout.width
+    } yield {
+      val pieceOccupies = layout(x, y)
+      val gridX = x + posX - layout.centerX
+      val gridY = y + posY - layout.centerY
+      pieceOccupies && (this(gridX, gridY) != Some(GridState.Empty))
+    }
+
+    occupancy.contains(true)
+  }
+
+  def apply(x: Int, y: Int): Option[GridState] =
+    if ((x < 0) || (x >= width)) then None else {
+      if (y < 0) then Some(GridState.Empty) else {
+        if (y >= height) None else Some(states(y * width + x))
+      }
+    }
+
+  def cannotDescend(piece: ActivePiece): Boolean =
+    collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY + 1)
+
+  def fixActivePiece(piece: ActivePiece): Grid = {
+    val layout = PieceLayout(piece.piece, piece.rotation)
+    val toAdd = for {
+      y <- 0 until layout.height
+      x <- 0 until layout.width
+      if layout(x, y)
+    } yield {
+      val gridX = x + piece.posX - layout.centerX
+      val gridY = y + piece.posY - layout.centerY
+      (gridX, gridY)
+    }
+
+    copy(
+      states = toAdd.foldLeft(states){ case (s, (x, y)) =>
+        val i = y * width + x
+        if ((i < 0) || (i >= s.size)) then s else s.updated(y * width + x, GridState.Occupied)
+      }
+    )
+  }
+}
+
 object GameState:
 
   val tickSpeed = 2.0 // seconds per tick
@@ -28,15 +74,79 @@ object GameState:
 
   def init(startTime: Long) = GameState(
     ticks = 0,
-    micros = startTime,
+    tickStart = startTime,
     grid = Grid.init,
-    activePiece = None
+    activePiece = None,
+    phase = GamePhase.NewActive
   )
 
   def update(deltaT: Double, micros: Long, events: Seq[GameEvent], state: GameState): GameState = {
-    ???
+    state.phase match {
+      case GamePhase.NewActive => {
+        val piece = ActivePiece(Piece.S, 4, 0, Rotation.CW0)
+
+        if (state.grid.collides(piece)) {
+          state.copy(phase = GamePhase.GameOver)
+        } else {
+          state.copy(activePiece = Some(piece), phase = GamePhase.MoveActive)
+        }
+      }
+
+      case GamePhase.MoveActive =>
+        if (state.tickTime(micros) >= tickSpeed) {
+          val activePiece = state.activePiece.get
+          if (state.grid.cannotDescend(activePiece)) {
+            state.copy(phase = GamePhase.FixActive, ticks = state.ticks + 1, tickStart = micros)
+          } else {
+            state.copy(
+              activePiece = Some(activePiece.copy(posY = activePiece.posY + 1)),
+              ticks = state.ticks + 1,
+              tickStart = micros
+            )
+          }
+        } else {
+          state
+        }
+
+      case GamePhase.FixActive => state.fixActivePiece
+
+      case GamePhase.GameOver => state
+    }
   }
 end GameState
+
+case class GameState(
+  ticks: Long,
+  tickStart: Long,
+  grid: Grid,
+  activePiece: Option[ActivePiece],
+  phase: GamePhase
+) {
+  def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
+
+  def fixActivePiece: GameState =
+    activePiece match {
+      case None => this
+      case Some(ap) =>
+        copy(
+          grid = grid.fixActivePiece(ap),
+          activePiece = None,
+          phase = GamePhase.NewActive
+        )
+    }
+
+  def isActivePieceDescending: Boolean = activePiece.map(grid.cannotDescend).exists(_ == false)
+}
+
+enum GamePhase:
+  case NewActive, MoveActive, FixActive, GameOver
+
+case class ActivePiece(
+  piece: Piece,
+  posX: Int,
+  posY: Int,
+  rotation: Rotation
+)
 
 enum Piece:
   case I, O, T, S, Z, J, L
@@ -51,6 +161,8 @@ case class PieceLayout(
 ) {
   val width = 4
   val height = 4
+
+  def apply(x: Int, y: Int): Boolean = grid(y * width + x)
 }
 
 object PieceLayout:
@@ -221,18 +333,4 @@ object PieceLayout:
     }
 
 end PieceLayout
-
-case class ActivePiece(
-  piece: Piece,
-  posX: Int,
-  posY: Int,
-  rotation: Rotation
-)
-
-case class GameState(
-  ticks: Long,
-  micros: Long,
-  grid: Grid,
-  activePiece: Option[ActivePiece]
-)
 
