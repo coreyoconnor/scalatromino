@@ -28,13 +28,15 @@ object GameRenderer:
     cairo_rectangle(cr, 0, 0, width, height)
     cairo_fill(cr)
 
+    val pieceSize = 20
+
     for {
       y <- 0 until state.grid.height
       x <- 0 until state.grid.width
     } {
       if (state.grid(x, y).exists(_ != GridState.Empty)) {
         cairo_set_source_rgb(cr, 0, 0, 0)
-        cairo_rectangle(cr, x * 10, y * 10, 10, 10)
+        cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
         cairo_fill(cr)
       }
     }
@@ -51,7 +53,7 @@ object GameRenderer:
           val outY = activePiece.posY + y - layout.centerY
 
           cairo_set_source_rgb(cr, 1, 0, 0)
-          cairo_rectangle(cr, outX * 10, outY * 10, 10, 10)
+          cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
           cairo_fill(cr)
         }
       }
