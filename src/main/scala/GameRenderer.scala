@@ -38,6 +38,10 @@ object GameRenderer:
         cairo_set_source_rgb(cr, 0, 0, 0)
         cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
         cairo_fill(cr)
+        cairo_set_source_rgb(cr, 0.8, 0.8, 0.9)
+        cairo_set_line_width(cr, 1.0)
+        cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
+        cairo_stroke(cr)
       }
     }
 
@@ -55,6 +59,10 @@ object GameRenderer:
           cairo_set_source_rgb(cr, 1, 0, 0)
           cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
           cairo_fill(cr)
+          cairo_set_source_rgb(cr, 0, 0.2, 0.2)
+          cairo_set_line_width(cr, 2.0)
+          cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
+          cairo_stroke(cr)
         }
       }
     }
