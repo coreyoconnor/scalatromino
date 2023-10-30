@@ -48,6 +48,7 @@ case class Grid(
 
   def fixActivePiece(piece: ActivePiece): Grid = {
     val layout = PieceLayout(piece.piece, piece.rotation)
+
     val toAdd = for {
       y <- 0 until layout.height
       x <- 0 until layout.width
@@ -61,7 +62,7 @@ case class Grid(
     copy(
       states = toAdd.foldLeft(states){ case (s, (x, y)) =>
         val i = y * width + x
-        if ((i < 0) || (i >= s.size)) then s else s.updated(y * width + x, GridState.Occupied)
+        if ((i < 0) || (i >= s.size)) then s else s.updated(i, GridState.Occupied)
       }
     )
   }
@@ -69,7 +70,7 @@ case class Grid(
 
 object GameState:
 
-  val tickSpeed = 2.0 // seconds per tick
+  val tickSpeed = 0.5 // seconds per tick
   val descendSpeed = 1 // ticks per unit grid
 
   def init(startTime: Long) = GameState(
@@ -105,7 +106,34 @@ object GameState:
             )
           }
         } else {
-          state
+          val activePiece = state.activePiece.get
+
+          val newRotation = events.foldLeft(activePiece.rotation) {
+            case (Rotation.CW0, InputStop(GameInput.Rotate)) => Rotation.CW1
+            case (Rotation.CW1, InputStop(GameInput.Rotate)) => Rotation.CW2
+            case (Rotation.CW2, InputStop(GameInput.Rotate)) => Rotation.CW3
+            case (Rotation.CW3, InputStop(GameInput.Rotate)) => Rotation.CW0
+            case (rotation, _) => rotation
+          }
+
+          val newPosX = events.foldLeft(activePiece.posX) {
+            case (posX, InputStop(GameInput.Left)) => posX - 1
+            case (posX, InputStop(GameInput.Right)) => posX + 1
+            case (posX, _) => posX
+          }
+
+          val updatedActivePiece = if (state.grid.collides(activePiece.copy(posX = newPosX))) {
+            activePiece.copy(
+              rotation = newRotation
+            )
+          } else {
+            activePiece.copy(
+              rotation = newRotation,
+              posX = newPosX
+            )
+          }
+
+          state.copy(activePiece = Some(updatedActivePiece))
         }
 
       case GamePhase.FixActive => state.fixActivePiece
@@ -188,7 +216,7 @@ object PieceLayout:
 
   def apply(desc: Desc): PieceLayout =
     PieceLayout(
-      grid = desc.filterNot(_.isSpaceChar).map(_ != '.'),
+      grid = desc.stripMargin.filterNot(_.isWhitespace).map(_ != '.'),
       centerX = 2,
       centerY = 2,
     )

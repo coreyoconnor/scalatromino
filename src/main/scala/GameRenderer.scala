@@ -40,9 +40,21 @@ object GameRenderer:
     }
 
     state.activePiece foreach { activePiece =>
-      cairo_set_source_rgb(cr, 1, 0, 0)
-      cairo_rectangle(cr, activePiece.posX * 10, activePiece.posY * 10, 10, 10)
-      cairo_fill(cr)
+      val layout = PieceLayout(activePiece.piece, activePiece.rotation)
+
+      for {
+        y <- 0 until layout.height
+        x <- 0 until layout.width
+      } {
+        if (layout(x, y)) {
+          val outX = activePiece.posX + x - layout.centerX
+          val outY = activePiece.posY + y - layout.centerY
+
+          cairo_set_source_rgb(cr, 1, 0, 0)
+          cairo_rectangle(cr, outX * 10, outY * 10, 10, 10)
+          cairo_fill(cr)
+        }
+      }
     }
   }
 end GameRenderer
