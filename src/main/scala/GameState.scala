@@ -123,18 +123,15 @@ object GameState:
             case (posX, _) => posX
           }
 
-          val updatedActivePiece = if (state.grid.collides(activePiece.copy(posX = newPosX))) {
-            activePiece.copy(
-              rotation = newRotation
-            )
-          } else {
+          val updatedActivePiece =
             activePiece.copy(
               rotation = newRotation,
               posX = newPosX
             )
-          }
 
-          state.copy(activePiece = Some(updatedActivePiece))
+          if (state.grid.collides(updatedActivePiece)) then state else {
+            state.copy(activePiece = Some(updatedActivePiece))
+          }
         }
 
       case GamePhase.FixActive => state.fixActivePiece
