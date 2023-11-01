@@ -23,10 +23,17 @@ object GameRenderer:
              deltaT: Double,
              micros: Long): Unit = {
 
-    val color = grayPulse(micros)
-    cairo_set_source_rgb(cr, color._1, color._2, color._3)
-    cairo_rectangle(cr, 0, 0, width, height)
-    cairo_fill(cr)
+    if (state.phase == GamePhase.GameOver) {
+      val color = (0, 1, 0)
+      cairo_set_source_rgb(cr, color._1, color._2, color._3)
+      cairo_rectangle(cr, 0, 0, width, height)
+      cairo_fill(cr)
+    } else {
+      val color = grayPulse(micros)
+      cairo_set_source_rgb(cr, color._1, color._2, color._3)
+      cairo_rectangle(cr, 0, 0, width, height)
+      cairo_fill(cr)
+    }
 
     val pieceSize = 20
 

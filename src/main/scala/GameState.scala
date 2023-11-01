@@ -136,6 +136,24 @@ object GameState:
 
       case GamePhase.FixActive => state.fixActivePiece
 
+      case GamePhase.Score => {
+        val lines = state.grid.states.grouped(state.grid.width)
+        val (linesEliminated, updatedLines) = lines.foldLeft((0, List.empty[Seq[GridState]])) { case ((score, outLines), line) =>
+          if (line.forall(_ != GridState.Empty)) {
+            (score + 1, outLines)
+          } else {
+            (score, line :: outLines)
+          }
+        }
+
+        val freshLines = Seq.fill(linesEliminated * state.grid.width)(GridState.Empty)
+        val states = freshLines ++ updatedLines.reverse.flatten.toSeq
+        state.copy(
+          grid = state.grid.copy(states = states),
+          phase = GamePhase.NewActive
+        )
+      }
+
       case GamePhase.GameOver => state
     }
   }
@@ -157,7 +175,7 @@ case class GameState(
         copy(
           grid = grid.fixActivePiece(ap),
           activePiece = None,
-          phase = GamePhase.NewActive
+          phase = GamePhase.Score
         )
     }
 
@@ -165,7 +183,7 @@ case class GameState(
 }
 
 enum GamePhase:
-  case NewActive, MoveActive, FixActive, GameOver
+  case NewActive, MoveActive, FixActive, Score, GameOver
 
 case class ActivePiece(
   piece: Piece,
