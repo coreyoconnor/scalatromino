@@ -1,5 +1,5 @@
 {
-  description = "scala-gtk-blocks";
+  description = "scalatromino";
 
   # you probably have this one already
   inputs.nixpkgs.url = "github:NixOS/nixpkgs";
@@ -26,7 +26,7 @@
         let pkgs = nixpkgs.legacyPackages.${system}; in
         {
           default = sbt.mkSbtDerivation.x86_64-linux {
-            pname = "scala-gtk-blocks";
+            pname = "scalatromino";
             version = "0.1.0";
             src = self;
             depsSha256 = "sha256-BS7bEtrkJTEj2aJ91L1NAA06W0CKIYlG0v3w7qqgyE8=";
@@ -35,7 +35,7 @@
             '';
             installPhase = ''
               mkdir -p $out/bin
-              cp target/scala-gtk-blocks $out/bin/
+              cp target/scalatromino $out/bin/
             '';
             LLVM_BIN = pkgs.clang + "/bin";
             buildInputs = with pkgs; [

@@ -27,7 +27,7 @@ lazy val root = project
 
     stage := {
       val exeFile = (Compile / nativeLink).value
-      val targetFile = target.value / "scala-gtk-blocks"
+      val targetFile = target.value / "scalatromino"
 
       sbt.IO.copyFile(exeFile, targetFile)
 
