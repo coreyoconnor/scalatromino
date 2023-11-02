@@ -56,9 +56,15 @@ object GameState:
 
           val newPosY = events.foldLeft(activePiece.posY) {
             case (posY, InputStop(GameInput.Drop)) => {
-              (state.grid.height until posY by -1).find { probeY =>
-                !state.grid.collides(activePiece.copy(posY = probeY))
-              }.getOrElse(posY)
+              val (_, maxY) = (posY until state.grid.height).foldLeft((true, posY)) { case ((priorFit, maxY), probeY) =>
+                if (priorFit && !state.grid.collides(activePiece.copy(posY = probeY))) then {
+                  (true, probeY)
+                } else {
+                  (false, maxY)
+                }
+              }
+
+              maxY
             }
             case (posY, _) => posY
           }
