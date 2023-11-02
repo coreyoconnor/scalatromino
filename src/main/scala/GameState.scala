@@ -110,10 +110,10 @@ object GameState:
           val activePiece = state.activePiece.get
 
           val newRotation = events.foldLeft(activePiece.rotation) {
-            case (Rotation.CW0, InputStop(GameInput.Rotate)) => Rotation.CW1
-            case (Rotation.CW1, InputStop(GameInput.Rotate)) => Rotation.CW2
-            case (Rotation.CW2, InputStop(GameInput.Rotate)) => Rotation.CW3
-            case (Rotation.CW3, InputStop(GameInput.Rotate)) => Rotation.CW0
+            case (Rotation.CW0, InputStop(GameInput.RotateCW)) => Rotation.CW1
+            case (Rotation.CW1, InputStop(GameInput.RotateCW)) => Rotation.CW2
+            case (Rotation.CW2, InputStop(GameInput.RotateCW)) => Rotation.CW3
+            case (Rotation.CW3, InputStop(GameInput.RotateCW)) => Rotation.CW0
             case (rotation, _) => rotation
           }
 

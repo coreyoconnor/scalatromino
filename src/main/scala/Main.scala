@@ -12,21 +12,6 @@ class StateHolder:
   val events: collection.mutable.Buffer[GameEvent] = collection.mutable.Buffer.empty
 end StateHolder
 
-def keyvalToInput(keyval: guint): Option[GameInput] = {
-  val keybindings: PartialFunction[Int, GameInput] = {
-    // a and left
-    case 0x061 | 0x8fb => GameInput.Left
-    // d and right
-    case 0x064 | 0x8fd => GameInput.Right
-    // s and down
-    case 0x073 | 0x8fe => GameInput.Rotate
-    // w, space, and up
-    case 0x077 | 0x020 | 0x8fc => GameInput.Drop
-  }
-
-  keybindings.lift(keyval.value.toInt)
-}
-
 @main def example =
   gtk_init()
 
@@ -145,7 +130,7 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
       val keyPressedCallback = CFuncPtr5.fromScalaFunction {
         (_: Ptr[GtkEventControllerKey], keyval: guint, _: guint, _: GdkModifierType, data: gpointer) => {
           val stateHolder = data.value.asPtr[StateHolder]
-          keyvalToInput(keyval) match {
+          GameInput.keyvalToInput(keyval) match {
             case Some(input) => {
               (!stateHolder).events += InputStart(input)
               gboolean(1)
@@ -157,7 +142,7 @@ def keyvalToInput(keyval: guint): Option[GameInput] = {
       val keyReleasedCallback = CFuncPtr5.fromScalaFunction {
         (_: Ptr[GtkEventControllerKey], keyval: guint, _: guint, _: GdkModifierType, data: gpointer) => {
           val stateHolder = data.value.asPtr[StateHolder]
-          keyvalToInput(keyval) match {
+          GameInput.keyvalToInput(keyval) match {
             case Some(input) => {
               (!stateHolder).events += InputStop(input)
               gboolean(1)
