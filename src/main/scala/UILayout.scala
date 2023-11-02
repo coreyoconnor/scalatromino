@@ -28,8 +28,19 @@ object UILayout:
     gtk_widget_set_valign(topLevel, GtkAlign.GTK_ALIGN_CENTER)
 
     gtk_box_append(topLevel.asPtr[GtkBox], gameControls.asPtr[GtkWidget])
-    gtk_box_append(topLevel.asPtr[GtkBox], drawingArea.asPtr[GtkWidget])
 
+    val gameArea = gtk_box_new(GtkOrientation.GTK_ORIENTATION_HORIZONTAL, 0)
+    val shortHelp = gtk_label_new(c"""
+W <-    Move piece left
+D ->    Move piece right
+S v     Rotate clockwise
+W ^ ` ` drop piece
+    """)
+
+    gtk_box_append(gameArea.asPtr[GtkBox], shortHelp.asPtr[GtkWidget])
+    gtk_box_append(gameArea.asPtr[GtkBox], drawingArea.asPtr[GtkWidget])
+
+    gtk_box_append(topLevel.asPtr[GtkBox], gameArea.asPtr[GtkWidget])
     gtk_window_set_child(window.asPtr[GtkWindow], topLevel)
   }
 
