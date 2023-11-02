@@ -19,38 +19,7 @@ end StateHolder
     (application: Ptr[GtkApplication], data: gpointer) =>
       val stateHolder = data.value.asPtr[StateHolder]
 
-      val window = gtk_application_window_new(application)
-
-      gtk_window_set_title(
-        window.asInstanceOf[Ptr[GtkWindow]],
-        c"Blocks"
-      )
-      gtk_window_set_default_size(window.asPtr[GtkWindow], 640, 480)
-
-      val box = gtk_box_new(GtkOrientation.GTK_ORIENTATION_VERTICAL, 0)
-      gtk_widget_set_halign(box, GtkAlign.GTK_ALIGN_CENTER)
-      gtk_widget_set_valign(box, GtkAlign.GTK_ALIGN_CENTER)
-
-      gtk_window_set_child(window.asPtr[GtkWindow], box)
-
-      val button = gtk_button_new_with_label(c"Start")
-
-      val startGame = CFuncPtr2.fromScalaFunction {
-        (widget: Ptr[GtkWidget], data: gpointer) => {
-          val stateHolder = data.value.asPtr[StateHolder]
-          val micros = g_get_monotonic_time().value
-          (!stateHolder).state = Some(GameState.init(micros))
-        }
-      }
-
-      g_signal_connect(button, c"clicked", startGame, data.value)
-
-      gtk_box_append(box.asPtr[GtkBox], button)
-
       val drawingArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
-
-      gtk_drawing_area_set_content_width(drawingArea, 1024)
-      gtk_drawing_area_set_content_height(drawingArea, 768)
 
       val tickCallback = CFuncPtr3.fromScalaFunction {
         (widget: Ptr[GtkWidget], frameClock: Ptr[GdkFrameClock], data: gpointer) => {
@@ -123,8 +92,6 @@ end StateHolder
                                      drawingFunction.asInstanceOf[GtkDrawingAreaDrawFunc],
                                      data, GDestroyNotify(null))
 
-      gtk_box_append(box.asPtr[GtkBox], drawingArea.asPtr[GtkWidget])
-
       val gameAreaKeyController = gtk_event_controller_key_new()
 
       val keyPressedCallback = CFuncPtr5.fromScalaFunction {
@@ -155,7 +122,23 @@ end StateHolder
       g_signal_connect(gameAreaKeyController, c"key-released", keyReleasedCallback, data.value)
 
       gtk_event_controller_set_propagation_phase(gameAreaKeyController, GtkPropagationPhase.GTK_PHASE_CAPTURE)
+
+      val window = gtk_application_window_new(application)
       gtk_widget_add_controller(window, gameAreaKeyController)
+
+      val startGameButton = gtk_button_new_with_label(c"Start")
+
+      val startGame = CFuncPtr2.fromScalaFunction {
+        (widget: Ptr[GtkWidget], data: gpointer) => {
+          val stateHolder = data.value.asPtr[StateHolder]
+          val micros = g_get_monotonic_time().value
+          (!stateHolder).state = Some(GameState.init(micros))
+        }
+      }
+
+      g_signal_connect(startGameButton, c"clicked", startGame, data.value)
+
+      UILayout.build(window, startGameButton, drawingArea)
 
       gtk_widget_show(window)
   }
