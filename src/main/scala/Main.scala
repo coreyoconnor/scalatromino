@@ -49,8 +49,8 @@ end StateHolder
 
       val drawingArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
 
-      gtk_drawing_area_set_content_width(drawingArea, 640)
-      gtk_drawing_area_set_content_height(drawingArea, 480)
+      gtk_drawing_area_set_content_width(drawingArea, 1024)
+      gtk_drawing_area_set_content_height(drawingArea, 768)
 
       val tickCallback = CFuncPtr3.fromScalaFunction {
         (widget: Ptr[GtkWidget], frameClock: Ptr[GdkFrameClock], data: gpointer) => {
