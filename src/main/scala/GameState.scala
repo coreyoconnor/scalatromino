@@ -1,24 +1,37 @@
+enum GridState:
+  case Empty, Occupied
+
 /** Grid is: Increasing X is to the right. Increasing Y is down.
  */
 object Grid:
   val defaultWidth = 10
   val defaultHeight = 20
 
-  val init: Grid = Grid(
+  val empty: Grid = Grid(
     states = Seq.fill(defaultWidth * defaultHeight)(GridState.Empty),
     width = defaultWidth,
     height = defaultHeight
   )
 end Grid
 
-enum GridState:
-  case Empty, Occupied
-
 case class Grid(
   states: Seq[GridState],
   width: Int,
   height: Int
 ) {
+  type Line = Seq[GridState]
+
+  object Line:
+    def empty: Line = Seq.fill(width)(GridState.Empty)
+  end Line
+
+  def apply(x: Int, y: Int): Option[GridState] =
+    if ((x < 0) || (x >= width)) then None else {
+      if (y < 0) then Some(GridState.Empty) else {
+        if (y >= height) None else Some(states(y * width + x))
+      }
+    }
+
   def collides(piece: ActivePiece): Boolean =
     collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY)
 
@@ -35,13 +48,6 @@ case class Grid(
 
     occupancy.contains(true)
   }
-
-  def apply(x: Int, y: Int): Option[GridState] =
-    if ((x < 0) || (x >= width)) then None else {
-      if (y < 0) then Some(GridState.Empty) else {
-        if (y >= height) None else Some(states(y * width + x))
-      }
-    }
 
   def cannotDescend(piece: ActivePiece): Boolean =
     collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY + 1)
@@ -66,17 +72,31 @@ case class Grid(
       }
     )
   }
+
+  def lines: Iterator[Line] = states.grouped(width)
+
+  def updateLines(lines: Seq[Line]): Grid = {
+    val count = height - lines.size
+    val emptyLines = Seq.fill(count * width)(GridState.Empty)
+
+    copy(
+      states = emptyLines ++ lines.flatten
+    )
+  }
+
 }
 
 object GameState:
 
-  val tickSpeed = 0.5 // seconds per tick
-  val descendSpeed = 1 // ticks per unit grid
+  val initialTickSpeed = 0.5 // seconds per tick
+  val initialDescentSpeed = 1 // ticks per unit grid
 
   def init(startTime: Long) = GameState(
     ticks = 0,
     tickStart = startTime,
-    grid = Grid.init,
+    tickSpeed = initialTickSpeed,
+    descentSpeed = initialDescentSpeed,
+    grid = Grid.empty,
     activePiece = None,
     phase = GamePhase.NewActive
   )
@@ -95,7 +115,7 @@ object GameState:
       }
 
       case GamePhase.MoveActive =>
-        if (state.tickTime(micros) >= tickSpeed) {
+        if (state.tickTime(micros) >= state.tickSpeed) {
           val activePiece = state.activePiece.get
           if (state.grid.cannotDescend(activePiece)) {
             state.copy(phase = GamePhase.FixActive, ticks = state.ticks + 1, tickStart = micros)
@@ -123,10 +143,20 @@ object GameState:
             case (posX, _) => posX
           }
 
+          val newPosY = events.foldLeft(activePiece.posY) {
+            case (posY, InputStop(GameInput.Drop)) => {
+              (state.grid.height until posY by -1).find { probeY =>
+                !state.grid.collides(activePiece.copy(posY = probeY))
+              }.getOrElse(posY)
+            }
+            case (posY, _) => posY
+          }
+
           val updatedActivePiece =
             activePiece.copy(
               rotation = newRotation,
-              posX = newPosX
+              posX = newPosX,
+              posY = newPosY
             )
 
           if (state.grid.collides(updatedActivePiece)) then state else {
@@ -137,19 +167,18 @@ object GameState:
       case GamePhase.FixActive => state.fixActivePiece
 
       case GamePhase.Score => {
-        val lines = state.grid.states.grouped(state.grid.width)
-        val (linesEliminated, updatedLines) = lines.foldLeft((0, List.empty[Seq[GridState]])) { case ((score, outLines), line) =>
+        val lines = state.grid.lines
+        val updatedLinesRev = lines.foldLeft(Seq.empty[state.grid.Line]) { (outLines, line) =>
           if (line.forall(_ != GridState.Empty)) {
-            (score + 1, outLines)
+            outLines
           } else {
-            (score, line :: outLines)
+            line +: outLines
           }
         }
+        val updatedLines = updatedLinesRev.reverse
 
-        val freshLines = Seq.fill(linesEliminated * state.grid.width)(GridState.Empty)
-        val states = freshLines ++ updatedLines.reverse.flatten.toSeq
         state.copy(
-          grid = state.grid.copy(states = states),
+          grid = state.grid.updateLines(updatedLines),
           phase = GamePhase.NewActive
         )
       }
@@ -162,6 +191,8 @@ end GameState
 case class GameState(
   ticks: Long,
   tickStart: Long,
+  tickSpeed: Double,
+  descentSpeed: Double,
   grid: Grid,
   activePiece: Option[ActivePiece],
   phase: GamePhase
