@@ -6,13 +6,13 @@ enum GameInput:
 object GameInput:
   val keybindings: PartialFunction[Int, GameInput] = {
     // a and left
-    case 0x061 | 0x8fb => GameInput.Left
+    case 0x061 | 0xff51 => GameInput.Left
     // d and right
-    case 0x064 | 0x8fd => GameInput.Right
+    case 0x064 | 0xff53 => GameInput.Right
     // s and down
-    case 0x073 | 0x8fe => GameInput.RotateCW
+    case 0x073 | 0xff54 => GameInput.RotateCW
     // w, space, and up
-    case 0x077 | 0x020 | 0x8fc => GameInput.Drop
+    case 0x077 | 0x020 | 0xff52 => GameInput.Drop
   }
 
   def keyvalToInput(keyval: guint): Option[GameInput] = {
