@@ -8,6 +8,9 @@ object GameRenderer:
   val minHeight = 768
   val minWidth = minHeight * 9 / 18
 
+  val nextPieceWidth = 100
+  val nextPieceHeight = 200
+
   type Color = (Double, Double, Double)
 
   def pulse(micros: Long, low: Color, high: Color): Color = {
@@ -104,6 +107,41 @@ object GameRenderer:
           cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
           cairo_stroke(cr)
         }
+      }
+    }
+  }
+
+  def renderNextPiece(drawingArea: Ptr[GtkDrawingArea],
+                      cr: Ptr[cairo_t],
+                      width: CInt, height: CInt,
+                      state: GameState): Unit = {
+    val cs = colorScheme(0, state.phase)
+
+    cairo_set_source_rgb(cr, cs.background._1, cs.background._2, cs.background._3)
+    cairo_rectangle(cr, 0, 0, width, height)
+    cairo_fill(cr)
+
+    val pieceSize = width / 6
+
+    val layout = PieceLayout(state.nextPiece, Rotation.CW0)
+
+    cairo_translate(cr, pieceSize * 3, pieceSize * 2)
+
+    for {
+      y <- 0 until layout.height
+      x <- 0 until layout.width
+    } {
+      if (layout(x, y)) {
+        val outX = x - layout.centerX
+        val outY = y - layout.centerY
+
+        cairo_set_source_rgb(cr, cs.activeFill._1, cs.activeFill._2, cs.activeFill._3)
+        cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
+        cairo_fill(cr)
+        cairo_set_source_rgb(cr, cs.activeOutline._1, cs.activeOutline._2, cs.activeOutline._3)
+        cairo_set_line_width(cr, 2.0)
+        cairo_rectangle(cr, outX * pieceSize, outY * pieceSize, pieceSize, pieceSize)
+        cairo_stroke(cr)
       }
     }
   }

@@ -19,53 +19,36 @@ end StateHolder
     (application: Ptr[GtkApplication], data: gpointer) =>
       val stateHolder = data.value.asPtr[StateHolder]
 
-      val drawingArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
+      val mainArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
+      val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
 
-      val tickCallback = CFuncPtr3.fromScalaFunction {
-        (widget: Ptr[GtkWidget], frameClock: Ptr[GdkFrameClock], data: gpointer) => {
-          val stateHolder = data.value.asPtr[StateHolder]
 
-          val micros = g_get_monotonic_time().value
-          val deltaMicros = (!stateHolder).priorMicros match {
-            case None => 20000
-            case Some(priorMicros) => {
-              micros - priorMicros
-            }
-          }
-          val deltaT = deltaMicros.toDouble / 1000000.0
-          (!stateHolder).priorMicros = Some(micros)
-
-          (!stateHolder).state foreach { state =>
-            val updatedState = GameState.update(
-              deltaT,
-              micros,
-              (!stateHolder).events.toSeq,
-              state
-            )
-            (!stateHolder).state = Some(updatedState)
-          }
-
-          (!stateHolder).events.clear()
-
+      val refreshWidget = CFuncPtr3.fromScalaFunction {
+        (widget: Ptr[GtkWidget], _: Ptr[GdkFrameClock], _: gpointer) => {
           gtk_widget_queue_draw(widget)
           gboolean(1)
         }
       }
 
-      gtk_widget_add_tick_callback(drawingArea.asPtr[GtkWidget],
-                                   tickCallback.asInstanceOf[GtkTickCallback],
-                                   data,
+      gtk_widget_add_tick_callback(mainArea.asPtr[GtkWidget],
+                                   refreshWidget.asInstanceOf[GtkTickCallback],
+                                   gpointer(null),
                                    GDestroyNotify(null))
 
-      val drawingFunction = CFuncPtr5.fromScalaFunction {
-        (drawingArea: Ptr[GtkDrawingArea], cr: Ptr[cairo_t], width: CInt, height: CInt, data: gpointer) => {
+      gtk_widget_add_tick_callback(nextPieceArea.asPtr[GtkWidget],
+                                   refreshWidget.asInstanceOf[GtkTickCallback],
+                                   gpointer(null),
+                                   GDestroyNotify(null))
+
+      val drawMainArea = CFuncPtr5.fromScalaFunction {
+        (mainArea: Ptr[GtkDrawingArea], cr: Ptr[cairo_t], width: CInt, height: CInt, data: gpointer) => {
           val stateHolder = data.value.asPtr[StateHolder]
 
           (!stateHolder).priorMicros match {
             case None => {
               val micros = g_get_monotonic_time().value
               (!stateHolder).state foreach { state =>
-                GameRenderer.render(drawingArea, cr, width, height, state, 0, micros)
+                GameRenderer.render(mainArea, cr, width, height, state, 0, micros)
               }
               (!stateHolder).priorMicros = Some(micros)
               (!stateHolder).priorRenderMicros = Some(micros)
@@ -81,15 +64,29 @@ end StateHolder
               (!stateHolder).priorRenderMicros = Some(micros)
 
               (!stateHolder).state foreach { state =>
-                GameRenderer.render(drawingArea, cr, width, height, state, deltaT, micros)
+                GameRenderer.render(mainArea, cr, width, height, state, deltaT, micros)
               }
             }
           }
         }
       }
 
-      gtk_drawing_area_set_draw_func(drawingArea,
-                                     drawingFunction.asInstanceOf[GtkDrawingAreaDrawFunc],
+      val drawNextPiece = CFuncPtr5.fromScalaFunction {
+        (nextPiece: Ptr[GtkDrawingArea], cr: Ptr[cairo_t], width: CInt, height: CInt, data: gpointer) => {
+          val stateHolder = data.value.asPtr[StateHolder]
+
+          (!stateHolder).state foreach { state =>
+            GameRenderer.renderNextPiece(nextPiece, cr, width, height, state)
+          }
+        }
+      }
+
+      gtk_drawing_area_set_draw_func(mainArea,
+                                     drawMainArea.asInstanceOf[GtkDrawingAreaDrawFunc],
+                                     data, GDestroyNotify(null))
+
+      gtk_drawing_area_set_draw_func(nextPieceArea,
+                                     drawNextPiece.asInstanceOf[GtkDrawingAreaDrawFunc],
                                      data, GDestroyNotify(null))
 
       val gameAreaKeyController = gtk_event_controller_key_new()
@@ -126,10 +123,44 @@ end StateHolder
       val window = gtk_application_window_new(application)
       gtk_widget_add_controller(window, gameAreaKeyController)
 
+      val updateGameTick = CFuncPtr3.fromScalaFunction {
+        (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) => {
+          val stateHolder = data.value.asPtr[StateHolder]
+
+          val micros = g_get_monotonic_time().value
+          val deltaMicros = (!stateHolder).priorMicros match {
+            case None => 20000
+            case Some(priorMicros) => {
+              micros - priorMicros
+            }
+          }
+          val deltaT = deltaMicros.toDouble / 1000000.0
+          (!stateHolder).priorMicros = Some(micros)
+
+          (!stateHolder).state foreach { state =>
+            val updatedState = GameState.update(
+              deltaT,
+              micros,
+              (!stateHolder).events.toSeq,
+              state
+            )
+            (!stateHolder).state = Some(updatedState)
+          }
+
+          (!stateHolder).events.clear()
+          gboolean(1)
+        }
+      }
+
+      gtk_widget_add_tick_callback(window.asPtr[GtkWidget],
+                                   updateGameTick.asInstanceOf[GtkTickCallback],
+                                   data,
+                                   GDestroyNotify(null))
+
       val startGameButton = gtk_button_new_with_label(c"Start")
 
       val startGame = CFuncPtr2.fromScalaFunction {
-        (widget: Ptr[GtkWidget], data: gpointer) => {
+        (_: Ptr[GtkWidget], data: gpointer) => {
           val stateHolder = data.value.asPtr[StateHolder]
           val micros = g_get_monotonic_time().value
           (!stateHolder).state = Some(GameState.init(micros))
@@ -138,7 +169,7 @@ end StateHolder
 
       g_signal_connect(startGameButton, c"clicked", startGame, data.value)
 
-      UILayout.build(window, startGameButton, drawingArea)
+      UILayout.build(window, startGameButton, mainArea, nextPieceArea)
 
       gtk_widget_show(window)
   }

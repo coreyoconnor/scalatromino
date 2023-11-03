@@ -9,19 +9,25 @@ object GameState:
     descentSpeed = initialDescentSpeed,
     grid = Grid.empty,
     activePiece = None,
+    nextPiece = randomPiece,
     phase = GamePhase.NewActive
   )
+
+  def randomPiece: Piece = scala.util.Random.shuffle(Piece.values).head
 
   def update(deltaT: Double, micros: Long, events: Seq[GameEvent], state: GameState): GameState = {
     state.phase match {
       case GamePhase.NewActive => {
-        val pieceType = scala.util.Random.shuffle(Piece.values).head
-        val piece = ActivePiece(pieceType, 4, 0, Rotation.CW0)
+        val piece = ActivePiece(state.nextPiece, 4, 0, Rotation.CW0)
 
         if (state.grid.collides(piece)) {
           state.copy(phase = GamePhase.GameOver)
         } else {
-          state.copy(activePiece = Some(piece), phase = GamePhase.MoveActive)
+          state.copy(
+            activePiece = Some(piece),
+            nextPiece = randomPiece,
+            phase = GamePhase.MoveActive
+          )
         }
       }
 
@@ -112,6 +118,7 @@ case class GameState(
   descentSpeed: Double,
   grid: Grid,
   activePiece: Option[ActivePiece],
+  nextPiece: Piece,
   phase: GamePhase
 ) {
   def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
