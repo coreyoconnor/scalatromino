@@ -175,7 +175,7 @@ end StateHolder
   }
 
   val app = gtk_application_new(
-    c"org.gtk.example",
+    c"com.coreyoconnor.scalatromino",
     GApplicationFlags.G_APPLICATION_FLAGS_NONE
   )
 
