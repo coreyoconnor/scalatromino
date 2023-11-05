@@ -1,33 +1,35 @@
-enum GridState:
-  case Empty, Occupied
-
 /** Grid is: Increasing X is to the right. Increasing Y is down.
  */
 object Grid:
-  val defaultWidth = 10
-  val defaultHeight = 20
+  sealed trait Cell
 
-  val empty: Grid = Grid(
-    states = Seq.fill(defaultWidth * defaultHeight)(GridState.Empty),
-    width = defaultWidth,
-    height = defaultHeight
+  object Cell:
+    case object Empty extends Cell
+    case class Occupied(startTime: Long, piece: Piece) extends Cell
+  
+
+  def empty(width: Int, height: Int): Grid = Grid(
+    states = Seq.fill(width * height)(Cell.Empty),
+    width = width,
+    height = height
   )
 end Grid
 
 case class Grid(
-  states: Seq[GridState],
+  private val states: Seq[Grid.Cell],
   width: Int,
   height: Int
 ) {
-  type Line = Seq[GridState]
+
+  type Line = Seq[Grid.Cell]
 
   object Line:
-    def empty: Line = Seq.fill(width)(GridState.Empty)
+    def empty: Line = Seq.fill(width)(Grid.Cell.Empty)
   end Line
 
-  def apply(x: Int, y: Int): Option[GridState] =
+  def apply(x: Int, y: Int): Option[Grid.Cell] =
     if ((x < 0) || (x >= width)) then None else {
-      if (y < 0) then Some(GridState.Empty) else {
+      if (y < 0) then Some(Grid.Cell.Empty) else {
         if (y >= height) None else Some(states(y * width + x))
       }
     }
@@ -43,7 +45,7 @@ case class Grid(
       val pieceOccupies = layout(x, y)
       val gridX = x + posX - layout.centerX
       val gridY = y + posY - layout.centerY
-      pieceOccupies && (this(gridX, gridY) != Some(GridState.Empty))
+      pieceOccupies && (this(gridX, gridY) != Some(Grid.Cell.Empty))
     }
 
     occupancy.contains(true)
@@ -52,7 +54,7 @@ case class Grid(
   def cannotDescend(piece: ActivePiece): Boolean =
     collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY + 1)
 
-  def fixActivePiece(piece: ActivePiece): Grid = {
+  def fixActivePiece(startTime: Long, piece: ActivePiece): Grid = {
     val layout = PieceLayout(piece.piece, piece.rotation)
 
     val toAdd = for {
@@ -68,7 +70,7 @@ case class Grid(
     copy(
       states = toAdd.foldLeft(states){ case (s, (x, y)) =>
         val i = y * width + x
-        if ((i < 0) || (i >= s.size)) then s else s.updated(i, GridState.Occupied)
+        if ((i < 0) || (i >= s.size)) then s else s.updated(i, Grid.Cell.Occupied(startTime, piece.piece))
       }
     )
   }
@@ -77,7 +79,7 @@ case class Grid(
 
   def updateLines(lines: Seq[Line]): Grid = {
     val count = height - lines.size
-    val emptyLines = Seq.fill(count * width)(GridState.Empty)
+    val emptyLines = Seq.fill(count * width)(Grid.Cell.Empty)
 
     copy(
       states = emptyLines ++ lines.flatten

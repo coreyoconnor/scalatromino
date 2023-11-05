@@ -1,4 +1,6 @@
 object GameState:
+  val defaultWidth = 10
+  val defaultHeight = 20
   val initialTickSpeed = 0.5 // seconds per tick
   val initialDescentSpeed = 1 // ticks per unit grid
 
@@ -7,7 +9,7 @@ object GameState:
     tickStart = startTime,
     tickSpeed = initialTickSpeed,
     descentSpeed = initialDescentSpeed,
-    grid = Grid.empty,
+    grid = Grid.empty(defaultWidth, defaultHeight),
     activePiece = None,
     nextPiece = randomPiece,
     phase = GamePhase.NewActive
@@ -87,12 +89,12 @@ object GameState:
           }
         }
 
-      case GamePhase.FixActive => state.fixActivePiece
+      case GamePhase.FixActive => state.fixActivePiece(micros)
 
       case GamePhase.Score => {
         val lines = state.grid.lines
         val updatedLinesRev = lines.foldLeft(Seq.empty[state.grid.Line]) { (outLines, line) =>
-          if (line.forall(_ != GridState.Empty)) {
+          if (line.forall(_ != Grid.Cell.Empty)) {
             outLines
           } else {
             line +: outLines
@@ -123,12 +125,12 @@ case class GameState(
 ) {
   def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
 
-  def fixActivePiece: GameState =
+  def fixActivePiece(time: Long): GameState =
     activePiece match {
       case None => this
       case Some(ap) =>
         copy(
-          grid = grid.fixActivePiece(ap),
+          grid = grid.fixActivePiece(time, ap),
           activePiece = None,
           phase = GamePhase.Score
         )
@@ -139,17 +141,4 @@ case class GameState(
 
 enum GamePhase:
   case NewActive, MoveActive, FixActive, Score, GameOver
-
-case class ActivePiece(
-  piece: Piece,
-  posX: Int,
-  posY: Int,
-  rotation: Rotation
-)
-
-enum Piece:
-  case I, O, T, S, Z, J, L
-
-enum Rotation:
-  case CW0, CW1, CW2, CW3
 

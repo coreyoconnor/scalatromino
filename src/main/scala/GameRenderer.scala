@@ -72,7 +72,7 @@ object GameRenderer:
       y <- 0 until state.grid.height
       x <- 0 until state.grid.width
     } {
-      if (state.grid(x, y).exists(_ != GridState.Empty)) {
+      if (state.grid(x, y).exists(_ != Grid.Cell.Empty)) {
         cairo_set_source_rgb(cr, cs.gridFill._1, cs.gridFill._2, cs.gridFill._3)
         cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
         cairo_fill(cr)
