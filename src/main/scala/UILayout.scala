@@ -41,7 +41,7 @@ object UILayout:
     val shortHelp = gtk_label_new(c"")
     gtk_label_set_markup(shortHelp.asPtr[GtkLabel], c"""
 <tt>
-W &#x2190;         Move left
+A &#x2190;         Move left
 D &#x2192;         Move right
 S &#x2193;         Rotate clockwise
 W &#x2191; `space` Drop

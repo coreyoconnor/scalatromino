@@ -12,7 +12,7 @@ class StateHolder:
   val events: collection.mutable.Buffer[GameEvent] = collection.mutable.Buffer.empty
 end StateHolder
 
-@main def example =
+@main def main =
   gtk_init()
 
   val activateCallback = CFuncPtr2.fromScalaFunction {
@@ -190,4 +190,4 @@ end StateHolder
   )
 
   g_application_run(app.asPtr[GApplication], 0, null)
-end example
+end main
