@@ -49,21 +49,21 @@ object GameState:
           val activePiece = state.activePiece.get
 
           val newRotation = events.foldLeft(activePiece.rotation) {
-            case (Rotation.CW0, InputStop(GameInput.RotateCW)) => Rotation.CW1
-            case (Rotation.CW1, InputStop(GameInput.RotateCW)) => Rotation.CW2
-            case (Rotation.CW2, InputStop(GameInput.RotateCW)) => Rotation.CW3
-            case (Rotation.CW3, InputStop(GameInput.RotateCW)) => Rotation.CW0
+            case (Rotation.CW0, InputStart(GameInput.RotateCW)) => Rotation.CW1
+            case (Rotation.CW1, InputStart(GameInput.RotateCW)) => Rotation.CW2
+            case (Rotation.CW2, InputStart(GameInput.RotateCW)) => Rotation.CW3
+            case (Rotation.CW3, InputStart(GameInput.RotateCW)) => Rotation.CW0
             case (rotation, _) => rotation
           }
 
           val newPosX = events.foldLeft(activePiece.posX) {
-            case (posX, InputStop(GameInput.Left)) => posX - 1
-            case (posX, InputStop(GameInput.Right)) => posX + 1
+            case (posX, InputStart(GameInput.Left)) => posX - 1
+            case (posX, InputStart(GameInput.Right)) => posX + 1
             case (posX, _) => posX
           }
 
           val newPosY = events.foldLeft(activePiece.posY) {
-            case (posY, InputStop(GameInput.Drop)) => {
+            case (posY, InputStart(GameInput.Drop)) => {
               val (_, maxY) = (posY until state.grid.height).foldLeft((true, posY)) { case ((priorFit, maxY), probeY) =>
                 if (priorFit && !state.grid.collides(activePiece.copy(posY = probeY))) then {
                   (true, probeY)
