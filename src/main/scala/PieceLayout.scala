@@ -1,7 +1,7 @@
 case class PieceLayout(
-  grid: Seq[Boolean],
-  centerX: Int,
-  centerY: Int
+    grid: Seq[Boolean],
+    centerX: Int,
+    centerY: Int
 ) {
   val width = 4
   val height = 4
@@ -12,7 +12,15 @@ case class PieceLayout(
 object PieceLayout:
   val allLayouts: Map[(Piece, Rotation), PieceLayout] = {
     for {
-      piece <- Seq(Piece.I, Piece.O, Piece.T, Piece.S, Piece.Z, Piece.J, Piece.L)
+      piece <- Seq(
+        Piece.I,
+        Piece.O,
+        Piece.T,
+        Piece.S,
+        Piece.Z,
+        Piece.J,
+        Piece.L
+      )
       rotation <- Seq(Rotation.CW0, Rotation.CW1, Rotation.CW2, Rotation.CW3)
       desc = piece match {
         case Piece.I => layoutI(rotation)
@@ -34,7 +42,7 @@ object PieceLayout:
     PieceLayout(
       grid = desc.stripMargin.filterNot(_.isWhitespace).map(_ != '.'),
       centerX = 2,
-      centerY = 2,
+      centerY = 2
     )
 
   def layoutI(rot: Rotation): Desc =
@@ -177,5 +185,3 @@ object PieceLayout:
     }
 
 end PieceLayout
-
-

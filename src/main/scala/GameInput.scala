@@ -19,4 +19,3 @@ object GameInput:
     keybindings.lift(keyval.value.toInt)
   }
 end GameInput
-

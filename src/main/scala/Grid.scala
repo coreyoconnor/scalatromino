@@ -1,12 +1,11 @@
 /** Grid is: Increasing X is to the right. Increasing Y is down.
- */
+  */
 object Grid:
   sealed trait Cell
 
   object Cell:
     case object Empty extends Cell
     case class Occupied(startTime: Long, piece: Piece) extends Cell
-  
 
   def empty(width: Int, height: Int): Grid = Grid(
     states = Seq.fill(width * height)(Cell.Empty),
@@ -16,9 +15,9 @@ object Grid:
 end Grid
 
 case class Grid(
-  private val states: Seq[Grid.Cell],
-  width: Int,
-  height: Int
+    private val states: Seq[Grid.Cell],
+    width: Int,
+    height: Int
 ) {
 
   type Line = Seq[Grid.Cell]
@@ -28,8 +27,10 @@ case class Grid(
   end Line
 
   def apply(x: Int, y: Int): Option[Grid.Cell] =
-    if ((x < 0) || (x >= width)) then None else {
-      if (y < 0) then Some(Grid.Cell.Empty) else {
+    if ((x < 0) || (x >= width)) then None
+    else {
+      if (y < 0) then Some(Grid.Cell.Empty)
+      else {
         if (y >= height) None else Some(states(y * width + x))
       }
     }
@@ -52,7 +53,11 @@ case class Grid(
   }
 
   def cannotDescend(piece: ActivePiece): Boolean =
-    collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY + 1)
+    collides(
+      PieceLayout(piece.piece, piece.rotation),
+      piece.posX,
+      piece.posY + 1
+    )
 
   def fixActivePiece(startTime: Long, piece: ActivePiece): Grid = {
     val layout = PieceLayout(piece.piece, piece.rotation)
@@ -68,9 +73,10 @@ case class Grid(
     }
 
     copy(
-      states = toAdd.foldLeft(states){ case (s, (x, y)) =>
+      states = toAdd.foldLeft(states) { case (s, (x, y)) =>
         val i = y * width + x
-        if ((i < 0) || (i >= s.size)) then s else s.updated(i, Grid.Cell.Occupied(startTime, piece.piece))
+        if ((i < 0) || (i >= s.size)) then s
+        else s.updated(i, Grid.Cell.Occupied(startTime, piece.piece))
       }
     )
   }
@@ -87,4 +93,3 @@ case class Grid(
   }
 
 }
-
