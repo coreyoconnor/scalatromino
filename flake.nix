@@ -22,11 +22,11 @@
       packages = eachSystem (system:
         let pkgs = nixpkgs.legacyPackages.${system}; in
         {
-          default = sbt.mkSbtDerivation.${system} {
+          default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages_15.stdenv; }) {
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
-            depsSha256 = "sha256-BS7bEtrkJTEj2aJ91L1NAA06W0CKIYlG0v3w7qqgyE8=";
+            depsSha256 = "sha256-Ig963NNfnFb02yJtdY/aaVaQtErocflPiMOFH9nBiw0=";
             buildPhase = ''
               sbt 'show stage'
             '';
@@ -34,19 +34,20 @@
               mkdir -p $out/bin
               cp target/scalatromino $out/bin/
             '';
-            LLVM_BIN = pkgs.clang + "/bin";
             buildInputs = with pkgs; [
               gtk4
             ];
             nativeBuildInputs = with pkgs; [
               boehmgc
-              clang
+              llvmPackages_15.clang
               libunwind
               pkg-config
               stdenv
               which
               zlib
             ];
+            env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
+            hardeningDisable = [ "fortify" ];
           };
         }
       );
