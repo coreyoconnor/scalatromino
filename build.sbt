@@ -11,14 +11,14 @@ lazy val root = project
   .in(file("."))
   .enablePlugins(ScalaNativePlugin)
   .settings(
-    scalaVersion := "3.3.1",
-    libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.4",
+    scalaVersion := "3.4.0",
+    // https://github.com/indoorvivants/scala-native-gtk-bindings
+    libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.5",
 
     nativeConfig := {
       val out = nativeConfig.value
         .withLTO(LTO.thin)
         .withMode(Mode.releaseFast)
-        .withGC(GC.commix)
         .withCompileOptions(pkgConfig("gtk4", "cflags"))
         .withLinkingOptions(pkgConfig("gtk4", "libs"))
 

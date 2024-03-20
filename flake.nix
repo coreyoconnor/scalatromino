@@ -26,11 +26,12 @@
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
-            depsSha256 = "sha256-Ig963NNfnFb02yJtdY/aaVaQtErocflPiMOFH9nBiw0=";
+            depsSha256 = "sha256-LEAzmq/dXR1/kTPV/u1M9dhPJvRuHDzQKBimse1FMPQ=";
             buildPhase = ''
-              sbt 'show stage'
+              sbt compile
             '';
             installPhase = ''
+              sbt 'show stage'
               mkdir -p $out/bin
               cp target/scalatromino $out/bin/
             '';
