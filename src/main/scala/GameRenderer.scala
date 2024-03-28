@@ -39,9 +39,9 @@ object GameRenderer:
       gridFill: Color
   )
 
-  def colorScheme(micros: Long, phase: GamePhase): ColorScheme =
+  def colorScheme(micros: Long, phase: GameState.Phase): ColorScheme =
     phase match {
-      case GamePhase.GameOver =>
+      case GameState.Phase.GameOver =>
         ColorScheme(
           background = pulse(micros, (0.8, 0.5, 0.5), (0.9, 0.55, 0.55)),
           backgroundGrid = (0.0, 0.0, 0.0),

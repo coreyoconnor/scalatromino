@@ -1,4 +1,6 @@
 object GameState:
+  enum Phase:
+    case NewActive, MoveActive, FixActive, Score, GameOver
   val defaultWidth = 10
   val defaultHeight = 20
   val initialTickSpeed = 0.5 // seconds per tick
@@ -12,7 +14,7 @@ object GameState:
     grid = Grid.empty(defaultWidth, defaultHeight),
     activePiece = None,
     nextPiece = randomPiece,
-    phase = GamePhase.NewActive
+    phase = Phase.NewActive
   )
 
   def randomPiece: Piece = scala.util.Random.shuffle(Piece.values).head
@@ -24,26 +26,26 @@ object GameState:
       state: GameState
   ): GameState = {
     state.phase match {
-      case GamePhase.NewActive => {
+      case Phase.NewActive => {
         val piece = ActivePiece(state.nextPiece, 4, 0, Rotation.CW0)
 
         if (state.grid.collides(piece)) {
-          state.copy(phase = GamePhase.GameOver)
+          state.copy(phase = Phase.GameOver)
         } else {
           state.copy(
             activePiece = Some(piece),
             nextPiece = randomPiece,
-            phase = GamePhase.MoveActive
+            phase = Phase.MoveActive
           )
         }
       }
 
-      case GamePhase.MoveActive =>
+      case Phase.MoveActive =>
         if (state.tickTime(micros) >= state.tickSpeed) {
           val activePiece = state.activePiece.get
           if (state.grid.cannotDescend(activePiece)) {
             state.copy(
-              phase = GamePhase.FixActive,
+              phase = Phase.FixActive,
               ticks = state.ticks + 1,
               tickStart = micros
             )
@@ -105,9 +107,9 @@ object GameState:
           }
         }
 
-      case GamePhase.FixActive => state.fixActivePiece(micros)
+      case Phase.FixActive => state.fixActivePiece(micros)
 
-      case GamePhase.Score => {
+      case Phase.Score => {
         val lines = state.grid.lines
         val updatedLinesRev = lines.foldLeft(Seq.empty[state.grid.Line]) {
           (outLines, line) =>
@@ -121,11 +123,11 @@ object GameState:
 
         state.copy(
           grid = state.grid.updateLines(updatedLines),
-          phase = GamePhase.NewActive
+          phase = Phase.NewActive
         )
       }
 
-      case GamePhase.GameOver => state
+      case Phase.GameOver => state
     }
   }
 end GameState
@@ -138,7 +140,7 @@ case class GameState(
     grid: Grid,
     activePiece: Option[ActivePiece],
     nextPiece: Piece,
-    phase: GamePhase
+    phase: GameState.Phase
 ) {
   def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
 
@@ -149,13 +151,10 @@ case class GameState(
         copy(
           grid = grid.fixActivePiece(time, ap),
           activePiece = None,
-          phase = GamePhase.Score
+          phase = GameState.Phase.Score
         )
     }
 
   def isActivePieceDescending: Boolean =
     activePiece.map(grid.cannotDescend).exists(_ == false)
 }
-
-enum GamePhase:
-  case NewActive, MoveActive, FixActive, Score, GameOver
