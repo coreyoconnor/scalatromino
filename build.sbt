@@ -11,7 +11,7 @@ lazy val root = project
   .in(file("."))
   .enablePlugins(ScalaNativePlugin)
   .settings(
-    scalaVersion := "3.4.0",
+    scalaVersion := "3.4.1",
     // https://github.com/indoorvivants/scala-native-gtk-bindings
     libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.5",
 
