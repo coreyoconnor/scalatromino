@@ -181,39 +181,9 @@ object MainUI:
       val window = gtk_application_window_new(application)
       gtk_widget_add_controller(window, gameAreaKeyController)
 
-      val updateGameTick = CFuncPtr3.fromScalaFunction {
-        (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
-          {
-            val stateHolder = data.value.asPtr[StateHolder]
-
-            val micros = g_get_monotonic_time().value
-            val deltaMicros = (!stateHolder).priorMicros match {
-              case None => 20000
-              case Some(priorMicros) => {
-                micros - priorMicros
-              }
-            }
-            val deltaT = deltaMicros.toDouble / 1000000.0
-            (!stateHolder).priorMicros = Some(micros)
-
-            (!stateHolder).state foreach { state =>
-              val updatedState = GameState.update(
-                deltaT,
-                micros,
-                (!stateHolder).events.toSeq,
-                state
-              )
-              (!stateHolder).state = Some(updatedState)
-            }
-
-            (!stateHolder).events.clear()
-            gboolean(1)
-          }
-      }
-
       gtk_widget_add_tick_callback(
         window.asPtr[GtkWidget],
-        updateGameTick.asInstanceOf[GtkTickCallback],
+        UpdateStateHolder.tick.asInstanceOf[GtkTickCallback],
         data,
         GDestroyNotify(null)
       )

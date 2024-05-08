@@ -1,7 +1,7 @@
 {
   description = "scalatromino";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
 
   inputs.sbt.url = "github:zaninime/sbt-derivation/master";
 
@@ -26,7 +26,7 @@
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
-            depsSha256 = "sha256-eFg4ncXZPVX+psDRKpWyOGrI4SuCfSZZZuuRcY0iTmg=";
+            depsSha256 = "sha256-/LTs3/n+qpDZe/LTn/WsP4Pqioocl68FIghu64qIijc=";
             buildPhase = ''
               sbt compile
             '';
