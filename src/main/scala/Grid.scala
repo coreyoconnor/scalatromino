@@ -8,22 +8,22 @@ object Grid:
     case class Occupied(startTime: Long, piece: Piece) extends Cell
 
   def empty(width: Int, height: Int): Grid = Grid(
-    states = Seq.fill(width * height)(Cell.Empty),
+    states = Vector.fill(width * height)(Cell.Empty),
     width = width,
     height = height
   )
 end Grid
 
 case class Grid(
-    private val states: Seq[Grid.Cell],
+    private val states: Vector[Grid.Cell],
     width: Int,
     height: Int
 ) {
 
-  type Line = Seq[Grid.Cell]
+  type Line = Vector[Grid.Cell]
 
   object Line:
-    def empty: Line = Seq.fill(width)(Grid.Cell.Empty)
+    def empty: Line = Vector.fill(width)(Grid.Cell.Empty)
   end Line
 
   def apply(x: Int, y: Int): Option[Grid.Cell] =
@@ -85,7 +85,7 @@ case class Grid(
 
   def updateLines(lines: Seq[Line]): Grid = {
     val count = height - lines.size
-    val emptyLines = Seq.fill(count * width)(Grid.Cell.Empty)
+    val emptyLines = Vector.fill(count * width)(Grid.Cell.Empty)
 
     copy(
       states = emptyLines ++ lines.flatten
