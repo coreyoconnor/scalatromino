@@ -39,9 +39,9 @@ object GameRenderer:
       gridFill: Color
   )
 
-  def colorScheme(micros: Long, phase: GameState.Phase): ColorScheme =
+  def colorScheme(micros: Long, phase: TetrisGameState.Phase): ColorScheme =
     phase match {
-      case GameState.Phase.GameOver =>
+      case TetrisGameState.Phase.GameOver =>
         ColorScheme(
           background = pulse(micros, (0.8, 0.5, 0.5), (0.9, 0.55, 0.55)),
           backgroundGrid = (0.0, 0.0, 0.0),
@@ -67,7 +67,7 @@ object GameRenderer:
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,
-      state: GameState,
+      state: TetrisGameState,
       deltaT: Double,
       micros: Long
   ): Unit = {
@@ -165,7 +165,7 @@ object GameRenderer:
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,
-      state: GameState
+      state: TetrisGameState
   ): Unit = {
     val cs = colorScheme(0, state.phase)
 

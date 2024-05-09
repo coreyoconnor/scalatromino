@@ -8,7 +8,8 @@ import scala.scalanative.unsafe.*
 object MainUI:
   val activate = CFuncPtr2.fromScalaFunction {
     (application: Ptr[GtkApplication], data: gpointer) =>
-      val stateHolder = data.value.asPtr[StateHolder]
+      val stateHolder =
+        data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
 
       val mainArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
       val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
@@ -44,7 +45,8 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder = data.value.asPtr[StateHolder]
+            val stateHolder =
+              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
 
             (!stateHolder).priorMicros match {
               case None => {
@@ -98,7 +100,8 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder = data.value.asPtr[StateHolder]
+            val stateHolder =
+              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
 
             (!stateHolder).state foreach { state =>
               GameRenderer.renderNextPiece(nextPiece, cr, width, height, state)
@@ -131,7 +134,8 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder = data.value.asPtr[StateHolder]
+            val stateHolder =
+              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
             GameInput.keyvalToInput(keyval) match {
               case Some(input) => {
                 (!stateHolder).events += InputStart(input)
@@ -150,7 +154,8 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder = data.value.asPtr[StateHolder]
+            val stateHolder =
+              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
             GameInput.keyvalToInput(keyval) match {
               case Some(input) => {
                 (!stateHolder).events += InputStop(input)
@@ -183,7 +188,7 @@ object MainUI:
 
       gtk_widget_add_tick_callback(
         window.asPtr[GtkWidget],
-        UpdateStateHolder.tick.asInstanceOf[GtkTickCallback],
+        GameUpdater.tick.asInstanceOf[GtkTickCallback],
         data,
         GDestroyNotify(null)
       )
@@ -193,9 +198,10 @@ object MainUI:
       val startGame = CFuncPtr2.fromScalaFunction {
         (_: Ptr[GtkWidget], data: gpointer) =>
           {
-            val stateHolder = data.value.asPtr[StateHolder]
+            val stateHolder =
+              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
             val micros = g_get_monotonic_time().value
-            (!stateHolder).state = Some(GameState.init(micros))
+            (!stateHolder).state = Some(TetrisGameState.init(micros))
           }
       }
 

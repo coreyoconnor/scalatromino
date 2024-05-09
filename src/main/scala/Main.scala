@@ -13,8 +13,8 @@ import scala.scalanative.unsafe.*
     GApplicationFlags.G_APPLICATION_FLAGS_NONE
   )
 
-  val stateHolder = stackalloc[StateHolder](1)
-  !stateHolder = new StateHolder
+  val stateHolder = stackalloc[StateHolder[TetrisGameState, GameEvent]](1)
+  !stateHolder = new StateHolder(TetrisGameState.update)
 
   g_signal_connect(
     app,

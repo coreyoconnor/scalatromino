@@ -1,4 +1,4 @@
-object GameState:
+object TetrisGameState:
   enum Phase:
     case NewActive, MoveActive, FixActive, Score, GameOver
   val defaultWidth = 10
@@ -6,7 +6,7 @@ object GameState:
   val initialTickSpeed = 0.5 // seconds per tick
   val initialDescentSpeed = 1 // ticks per unit grid
 
-  def init(startTime: Long) = GameState(
+  def init(startTime: Long) = TetrisGameState(
     ticks = 0,
     tickStart = startTime,
     tickSpeed = initialTickSpeed,
@@ -23,8 +23,8 @@ object GameState:
       deltaT: Double,
       micros: Long,
       events: Seq[GameEvent],
-      state: GameState
-  ): GameState = {
+      state: TetrisGameState
+  ): TetrisGameState = {
     state.phase match {
       case Phase.NewActive => {
         val piece = ActivePiece(state.nextPiece, 4, 0, Rotation.CW0)
@@ -130,9 +130,9 @@ object GameState:
       case Phase.GameOver => state
     }
   }
-end GameState
+end TetrisGameState
 
-case class GameState(
+case class TetrisGameState(
     ticks: Long,
     tickStart: Long,
     tickSpeed: Double,
@@ -140,18 +140,18 @@ case class GameState(
     grid: Grid,
     activePiece: Option[ActivePiece],
     nextPiece: Piece,
-    phase: GameState.Phase
+    phase: TetrisGameState.Phase
 ) {
   def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
 
-  def fixActivePiece(time: Long): GameState =
+  def fixActivePiece(time: Long): TetrisGameState =
     activePiece match {
       case None => this
       case Some(ap) =>
         copy(
           grid = grid.fixActivePiece(time, ap),
           activePiece = None,
-          phase = GameState.Phase.Score
+          phase = TetrisGameState.Phase.Score
         )
     }
 
