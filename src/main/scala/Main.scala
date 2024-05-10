@@ -13,14 +13,14 @@ import scala.scalanative.unsafe.*
     GApplicationFlags.G_APPLICATION_FLAGS_NONE
   )
 
-  val stateHolder = stackalloc[StateHolder[TetrisGameState, GameEvent]](1)
-  !stateHolder = new StateHolder(TetrisGameState.update)
+  val session = stackalloc[Session[TetrisGameState, GameEvent]](1)
+  !session = new Session(TetrisGameState.update)
 
   g_signal_connect(
     app,
     c"activate",
     MainUI.activate,
-    stateHolder.asPtr[Byte]
+    session.asPtr[Byte]
   )
 
   g_application_run(app.asPtr[GApplication], 0, null)

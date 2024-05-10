@@ -4,12 +4,12 @@ import gtk.fluent.*
 
 import scala.scalanative.unsafe.*
 
-object GameUpdater:
+object Updater:
   def tick[S, E] = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
-      val stateHolder = data.value.asPtr[StateHolder[S, E]]
-      val holder = !stateHolder
+      val session = data.value.asPtr[Session[S, E]]
+      val holder = !session
 
       val micros = g_get_monotonic_time().value
       val deltaMicros = holder.priorMicros match {
@@ -26,15 +26,15 @@ object GameUpdater:
           state
         )
 
-        (!stateHolder).state = Some(updatedState)
+        (!session).state = Some(updatedState)
       }
 
-      (!stateHolder).priorMicros = Some(micros)
-      (!stateHolder).events.clear()
+      (!session).priorMicros = Some(micros)
+      (!session).events.clear()
       gboolean(1)
   }
-end GameUpdater
+end Updater
 
 @FunctionalInterface
-trait GameUpdater[S, E]:
+trait Updater[S, E]:
   def apply(deltaT: Double, micros: Long, events: Seq[E], state: S): S

@@ -1,3 +1,5 @@
+import shell.control.*
+
 import gio.all.*
 import glib.all.*
 import gtk.all.*
@@ -8,33 +10,14 @@ import scala.scalanative.unsafe.*
 object MainUI:
   val activate = CFuncPtr2.fromScalaFunction {
     (application: Ptr[GtkApplication], data: gpointer) =>
-      val stateHolder =
-        data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+      val session =
+        data.value.asPtr[Session[TetrisGameState, GameEvent]]
 
       val mainArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
       val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
 
-      val refreshWidget = CFuncPtr3.fromScalaFunction {
-        (widget: Ptr[GtkWidget], _: Ptr[GdkFrameClock], _: gpointer) =>
-          {
-            gtk_widget_queue_draw(widget)
-            gboolean(1)
-          }
-      }
-
-      gtk_widget_add_tick_callback(
-        mainArea.asPtr[GtkWidget],
-        refreshWidget.asInstanceOf[GtkTickCallback],
-        gpointer(null),
-        GDestroyNotify(null)
-      )
-
-      gtk_widget_add_tick_callback(
-        nextPieceArea.asPtr[GtkWidget],
-        refreshWidget.asInstanceOf[GtkTickCallback],
-        gpointer(null),
-        GDestroyNotify(null)
-      )
+      RefreshWidget.startRefresh(mainArea.asPtr[GtkWidget])
+      RefreshWidget.startRefresh(nextPieceArea.asPtr[GtkWidget])
 
       val drawMainArea = CFuncPtr5.fromScalaFunction {
         (
@@ -45,13 +28,13 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder =
-              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+            val session =
+              data.value.asPtr[Session[TetrisGameState, GameEvent]]
 
-            (!stateHolder).priorMicros match {
+            (!session).priorMicros match {
               case None => {
                 val micros = g_get_monotonic_time().value
-                (!stateHolder).state foreach { state =>
+                (!session).state foreach { state =>
                   GameRenderer.render(
                     mainArea,
                     cr,
@@ -62,20 +45,20 @@ object MainUI:
                     micros
                   )
                 }
-                (!stateHolder).priorMicros = Some(micros)
-                (!stateHolder).priorRenderMicros = Some(micros)
+                (!session).priorMicros = Some(micros)
+                (!session).priorRenderMicros = Some(micros)
               }
               case Some(micros) => {
-                val deltaMicros = (!stateHolder).priorRenderMicros match {
+                val deltaMicros = (!session).priorRenderMicros match {
                   case None => 20000
                   case Some(priorRenderMicros) => {
                     micros - priorRenderMicros
                   }
                 }
                 val deltaT = deltaMicros.toDouble / 1000000.0
-                (!stateHolder).priorRenderMicros = Some(micros)
+                (!session).priorRenderMicros = Some(micros)
 
-                (!stateHolder).state foreach { state =>
+                (!session).state foreach { state =>
                   GameRenderer.render(
                     mainArea,
                     cr,
@@ -100,10 +83,10 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder =
-              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+            val session =
+              data.value.asPtr[Session[TetrisGameState, GameEvent]]
 
-            (!stateHolder).state foreach { state =>
+            (!session).state foreach { state =>
               GameRenderer.renderNextPiece(nextPiece, cr, width, height, state)
             }
           }
@@ -134,11 +117,11 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder =
-              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+            val session =
+              data.value.asPtr[Session[TetrisGameState, GameEvent]]
             GameInput.keyvalToInput(keyval) match {
               case Some(input) => {
-                (!stateHolder).events += InputStart(input)
+                (!session).events += InputStart(input)
                 gboolean(1)
               }
               case None => gboolean(0)
@@ -154,11 +137,11 @@ object MainUI:
             data: gpointer
         ) =>
           {
-            val stateHolder =
-              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+            val session =
+              data.value.asPtr[Session[TetrisGameState, GameEvent]]
             GameInput.keyvalToInput(keyval) match {
               case Some(input) => {
-                (!stateHolder).events += InputStop(input)
+                (!session).events += InputStop(input)
                 gboolean(1)
               }
               case None => gboolean(0)
@@ -188,7 +171,7 @@ object MainUI:
 
       gtk_widget_add_tick_callback(
         window.asPtr[GtkWidget],
-        GameUpdater.tick.asInstanceOf[GtkTickCallback],
+        Updater.tick.asInstanceOf[GtkTickCallback],
         data,
         GDestroyNotify(null)
       )
@@ -198,10 +181,10 @@ object MainUI:
       val startGame = CFuncPtr2.fromScalaFunction {
         (_: Ptr[GtkWidget], data: gpointer) =>
           {
-            val stateHolder =
-              data.value.asPtr[StateHolder[TetrisGameState, GameEvent]]
+            val session =
+              data.value.asPtr[Session[TetrisGameState, GameEvent]]
             val micros = g_get_monotonic_time().value
-            (!stateHolder).state = Some(TetrisGameState.init(micros))
+            (!session).state = Some(TetrisGameState.init(micros))
           }
       }
 
