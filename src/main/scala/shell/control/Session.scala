@@ -1,4 +1,6 @@
-class Session[S, E](val updater: Updater[S, E]):
+package shell.control
+
+class Session[S, E](val updater: StateUpdater[S, E]):
   var state: Option[S] = None
   var priorMicros: Option[Long] = None
   var priorRenderMicros: Option[Long] = None

@@ -171,7 +171,7 @@ object MainUI:
 
       gtk_widget_add_tick_callback(
         window.asPtr[GtkWidget],
-        Updater.tick.asInstanceOf[GtkTickCallback],
+        StateUpdater.tick.asInstanceOf[GtkTickCallback],
         data,
         GDestroyNotify(null)
       )

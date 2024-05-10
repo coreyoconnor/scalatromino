@@ -1,10 +1,12 @@
+package shell.control
+
 import glib.all.*
 import gtk.all.*
 import gtk.fluent.*
 
 import scala.scalanative.unsafe.*
 
-object Updater:
+object StateUpdater:
   def tick[S, E] = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
@@ -33,8 +35,8 @@ object Updater:
       (!session).events.clear()
       gboolean(1)
   }
-end Updater
+end StateUpdater
 
 @FunctionalInterface
-trait Updater[S, E]:
+trait StateUpdater[S, E]:
   def apply(deltaT: Double, micros: Long, events: Seq[E], state: S): S

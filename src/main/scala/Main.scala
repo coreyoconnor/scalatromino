@@ -1,8 +1,8 @@
+import shell.control.*
+
 import gio.all.*
-import glib.all.*
 import gtk.all.*
 import gtk.fluent.*
-import libcairo.all.*
 import scala.scalanative.unsafe.*
 
 @main def main =
