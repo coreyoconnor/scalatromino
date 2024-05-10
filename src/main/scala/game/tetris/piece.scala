@@ -1,3 +1,5 @@
+package game.tetris
+
 case class ActivePiece(
     piece: Piece,
     posX: Int,

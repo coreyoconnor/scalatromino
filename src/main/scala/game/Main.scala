@@ -1,3 +1,6 @@
+package game
+
+import game.tetris.*
 import shell.control.*
 
 import gio.all.*

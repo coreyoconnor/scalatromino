@@ -1,3 +1,5 @@
+package game
+
 import glib.all.*
 
 enum GameInput:

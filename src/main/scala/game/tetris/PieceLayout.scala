@@ -1,3 +1,5 @@
+package game.tetris
+
 case class PieceLayout(
     grid: Seq[Boolean],
     centerX: Int,

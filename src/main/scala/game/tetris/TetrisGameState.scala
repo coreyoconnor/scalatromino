@@ -1,3 +1,7 @@
+package game.tetris
+
+import game.*
+
 object TetrisGameState:
   enum Phase:
     case NewActive, MoveActive, FixActive, Score, GameOver

@@ -1,3 +1,5 @@
+package game.tetris
+
 /** Grid is: Increasing X is to the right. Increasing Y is down.
   */
 object Grid:

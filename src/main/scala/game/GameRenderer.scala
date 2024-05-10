@@ -1,3 +1,7 @@
+package game
+
+import game.tetris._
+
 import glib.all.*
 import gtk.all.*
 import gtk.fluent.*
