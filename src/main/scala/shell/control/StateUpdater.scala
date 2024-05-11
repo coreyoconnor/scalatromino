@@ -1,5 +1,7 @@
 package shell.control
 
+import game.Game
+
 import glib.all.*
 import gtk.all.*
 import gtk.fluent.*
@@ -7,32 +9,32 @@ import gtk.fluent.*
 import scala.scalanative.unsafe.*
 
 object StateUpdater:
-  def tick[S, E] = CFuncPtr3.fromScalaFunction {
+  def tick[G <: Game] = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
-      val session = data.value.asPtr[Session[S, E]]
-      val holder = !session
+      val sessionRef = data.value.asPtr[Session[G]]
+      val session = !sessionRef
 
       val micros = g_get_monotonic_time().value
-      val deltaMicros = holder.priorMicros match {
+      val deltaMicros = session.priorMicros match {
         case None              => 20000
         case Some(priorMicros) => micros - priorMicros
       }
       val deltaT = deltaMicros.toDouble / 1000000.0
 
-      holder.state foreach { state =>
-        val updatedState = holder.updater(
+      session.state foreach { state =>
+        val updatedState = session.updater(
           deltaT,
           micros,
-          holder.events.toSeq,
+          session.events.toSeq,
           state
         )
 
-        (!session).state = Some(updatedState)
+        // (!sessionRef).state = Some(updatedState)
       }
 
-      (!session).priorMicros = Some(micros)
-      (!session).events.clear()
+      (!sessionRef).priorMicros = Some(micros)
+      (!sessionRef).events.clear()
       gboolean(1)
   }
 end StateUpdater

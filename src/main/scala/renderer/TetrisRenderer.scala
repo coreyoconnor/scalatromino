@@ -1,5 +1,6 @@
-package game
+package renderer
 
+import game.TetrisGame
 import game.tetris._
 
 import glib.all.*
@@ -8,7 +9,7 @@ import gtk.fluent.*
 import libcairo.all.*
 import scala.scalanative.unsafe.*
 
-object GameRenderer:
+object TetrisRenderer extends TetrisGame.Renderer:
   val minHeight = 768
   val minWidth = minHeight * 9 / 18
 
@@ -43,9 +44,9 @@ object GameRenderer:
       gridFill: Color
   )
 
-  def colorScheme(micros: Long, phase: TetrisGameState.Phase): ColorScheme =
+  def colorScheme(micros: Long, phase: GameState.Phase): ColorScheme =
     phase match {
-      case TetrisGameState.Phase.GameOver =>
+      case GameState.Phase.GameOver =>
         ColorScheme(
           background = pulse(micros, (0.8, 0.5, 0.5), (0.9, 0.55, 0.55)),
           backgroundGrid = (0.0, 0.0, 0.0),
@@ -66,12 +67,12 @@ object GameRenderer:
         )
     }
 
-  def render(
+  def apply(
       drawingArea: Ptr[GtkDrawingArea],
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,
-      state: TetrisGameState,
+      state: GameState,
       deltaT: Double,
       micros: Long
   ): Unit = {
@@ -169,7 +170,7 @@ object GameRenderer:
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,
-      state: TetrisGameState
+      state: GameState
   ): Unit = {
     val cs = colorScheme(0, state.phase)
 
@@ -228,4 +229,4 @@ object GameRenderer:
       }
     }
   }
-end GameRenderer
+end TetrisRenderer

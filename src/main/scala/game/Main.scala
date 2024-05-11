@@ -1,7 +1,9 @@
 package game
 
+import game.TetrisGame
 import game.tetris.*
 import shell.control.*
+import shell.ui.TetrisUI
 
 import gio.all.*
 import gtk.all.*
@@ -16,13 +18,14 @@ import scala.scalanative.unsafe.*
     GApplicationFlags.G_APPLICATION_FLAGS_NONE
   )
 
-  val session = stackalloc[Session[TetrisGameState, GameEvent]](1)
-  !session = new Session(TetrisGameState.update)
+  val session = stackalloc[Session[TetrisGame.type]](1)
+  !session =
+    new Session(TetrisGame)(tetris.GameState, ???, renderer.TetrisRenderer)
 
   g_signal_connect(
     app,
     c"activate",
-    MainUI.activate,
+    TetrisUI.activate,
     session.asPtr[Byte]
   )
 

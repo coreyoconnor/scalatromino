@@ -1,8 +1,9 @@
 package game.tetris
 
-import game.*
+import game.TetrisGame
+import game.TetrisGame.{Input, InputStart, InputStop}
 
-object TetrisGameState:
+object GameState extends TetrisGame.Updater:
   enum Phase:
     case NewActive, MoveActive, FixActive, Score, GameOver
   val defaultWidth = 10
@@ -10,7 +11,7 @@ object TetrisGameState:
   val initialTickSpeed = 0.5 // seconds per tick
   val initialDescentSpeed = 1 // ticks per unit grid
 
-  def init(startTime: Long) = TetrisGameState(
+  def init(startTime: Long) = GameState(
     ticks = 0,
     tickStart = startTime,
     tickSpeed = initialTickSpeed,
@@ -23,12 +24,12 @@ object TetrisGameState:
 
   def randomPiece: Piece = scala.util.Random.shuffle(Piece.values).head
 
-  def update(
+  def apply(
       deltaT: Double,
       micros: Long,
-      events: Seq[GameEvent],
-      state: TetrisGameState
-  ): TetrisGameState = {
+      events: Seq[TetrisGame.Event],
+      state: GameState
+  ): GameState = {
     state.phase match {
       case Phase.NewActive => {
         val piece = ActivePiece(state.nextPiece, 4, 0, Rotation.CW0)
@@ -64,21 +65,21 @@ object TetrisGameState:
           val activePiece = state.activePiece.get
 
           val newRotation = events.foldLeft(activePiece.rotation) {
-            case (Rotation.CW0, InputStart(GameInput.RotateCW)) => Rotation.CW1
-            case (Rotation.CW1, InputStart(GameInput.RotateCW)) => Rotation.CW2
-            case (Rotation.CW2, InputStart(GameInput.RotateCW)) => Rotation.CW3
-            case (Rotation.CW3, InputStart(GameInput.RotateCW)) => Rotation.CW0
-            case (rotation, _)                                  => rotation
+            case (Rotation.CW0, InputStart(Input.RotateCW)) => Rotation.CW1
+            case (Rotation.CW1, InputStart(Input.RotateCW)) => Rotation.CW2
+            case (Rotation.CW2, InputStart(Input.RotateCW)) => Rotation.CW3
+            case (Rotation.CW3, InputStart(Input.RotateCW)) => Rotation.CW0
+            case (rotation, _)                              => rotation
           }
 
           val newPosX = events.foldLeft(activePiece.posX) {
-            case (posX, InputStart(GameInput.Left))  => posX - 1
-            case (posX, InputStart(GameInput.Right)) => posX + 1
-            case (posX, _)                           => posX
+            case (posX, InputStart(Input.Left))  => posX - 1
+            case (posX, InputStart(Input.Right)) => posX + 1
+            case (posX, _)                       => posX
           }
 
           val newPosY = events.foldLeft(activePiece.posY) {
-            case (posY, InputStart(GameInput.Drop)) => {
+            case (posY, InputStart(Input.Drop)) => {
               val (_, maxY) =
                 (posY until state.grid.height).foldLeft((true, posY)) {
                   case ((priorFit, maxY), probeY) =>
@@ -134,9 +135,9 @@ object TetrisGameState:
       case Phase.GameOver => state
     }
   }
-end TetrisGameState
+end GameState
 
-case class TetrisGameState(
+case class GameState(
     ticks: Long,
     tickStart: Long,
     tickSpeed: Double,
@@ -144,18 +145,18 @@ case class TetrisGameState(
     grid: Grid,
     activePiece: Option[ActivePiece],
     nextPiece: Piece,
-    phase: TetrisGameState.Phase
+    phase: GameState.Phase
 ) {
   def tickTime(micros: Long): Double = (micros - tickStart).toDouble / 1000000.0
 
-  def fixActivePiece(time: Long): TetrisGameState =
+  def fixActivePiece(time: Long): GameState =
     activePiece match {
       case None => this
       case Some(ap) =>
         copy(
           grid = grid.fixActivePiece(time, ap),
           activePiece = None,
-          phase = TetrisGameState.Phase.Score
+          phase = GameState.Phase.Score
         )
     }
 
