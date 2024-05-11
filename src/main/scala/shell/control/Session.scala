@@ -12,4 +12,18 @@ class Session[G <: Game](val game: G)(
   var priorRenderMicros: Option[Long] = None
   val events: collection.mutable.Buffer[game.Event] =
     collection.mutable.Buffer.empty
+
+  def update(
+      deltaT: Double,
+      micros: Long
+  ): Unit = {
+    state = state.map { s =>
+      updater(
+        deltaT,
+        micros,
+        events.toSeq,
+        s
+      )
+    }
+  }
 end Session

@@ -1,9 +1,10 @@
 package game
 
 import game.TetrisGame
-import game.tetris.*
+import game.tetris
+import renderer.TetrisRenderer
 import shell.control.*
-import shell.ui.TetrisUI
+import shell.ui.{TetrisUI, TetrisKeyBindings}
 
 import gio.all.*
 import gtk.all.*
@@ -20,7 +21,7 @@ import scala.scalanative.unsafe.*
 
   val session = stackalloc[Session[TetrisGame.type]](1)
   !session =
-    new Session(TetrisGame)(tetris.GameState, ???, renderer.TetrisRenderer)
+    new Session(TetrisGame)(tetris.GameState, TetrisKeyBindings, TetrisRenderer)
 
   g_signal_connect(
     app,

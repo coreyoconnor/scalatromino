@@ -9,10 +9,10 @@ import gtk.fluent.*
 import scala.scalanative.unsafe.*
 
 object StateUpdater:
-  def tick[G <: Game] = CFuncPtr3.fromScalaFunction {
+  def tick = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
-      val sessionRef = data.value.asPtr[Session[G]]
+      val sessionRef = data.value.asPtr[Session[?]]
       val session = !sessionRef
 
       val micros = g_get_monotonic_time().value
@@ -22,16 +22,7 @@ object StateUpdater:
       }
       val deltaT = deltaMicros.toDouble / 1000000.0
 
-      session.state foreach { state =>
-        val updatedState = session.updater(
-          deltaT,
-          micros,
-          session.events.toSeq,
-          state
-        )
-
-        // (!sessionRef).state = Some(updatedState)
-      }
+      session.update(deltaT, micros)
 
       (!sessionRef).priorMicros = Some(micros)
       (!sessionRef).events.clear()

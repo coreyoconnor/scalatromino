@@ -14,7 +14,6 @@ lazy val root = project
     scalaVersion := "3.4.1",
     // https://github.com/indoorvivants/scala-native-gtk-bindings
     libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.5",
-
     nativeConfig := {
       val out = nativeConfig.value
         .withLTO(LTO.thin)
@@ -24,7 +23,6 @@ lazy val root = project
 
       out
     },
-
     stage := {
       val exeFile = (Compile / nativeLink).value
       val targetFile = target.value / "scalatromino"
@@ -32,5 +30,5 @@ lazy val root = project
       sbt.IO.copyFile(exeFile, targetFile)
 
       targetFile
-    },
+    }
   )
