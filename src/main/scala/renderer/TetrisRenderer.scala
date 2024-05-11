@@ -68,7 +68,6 @@ object TetrisRenderer extends TetrisGame.Renderer:
     }
 
   def apply(
-      drawingArea: Ptr[GtkDrawingArea],
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,
@@ -166,7 +165,6 @@ object TetrisRenderer extends TetrisGame.Renderer:
   }
 
   def renderNextPiece(
-      drawingArea: Ptr[GtkDrawingArea],
       cr: Ptr[cairo_t],
       width: CInt,
       height: CInt,

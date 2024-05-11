@@ -39,7 +39,6 @@ object TetrisUI:
                 val micros = g_get_monotonic_time().value
                 (!sessionRef).state foreach { state =>
                   (!sessionRef).renderer(
-                    mainArea,
                     cr,
                     width,
                     height,
@@ -63,7 +62,6 @@ object TetrisUI:
 
                 (!sessionRef).state foreach { state =>
                   (!sessionRef).renderer(
-                    mainArea,
                     cr,
                     width,
                     height,
@@ -90,7 +88,6 @@ object TetrisUI:
 
             (!sessionRef).state foreach { state =>
               TetrisRenderer.renderNextPiece(
-                nextPiece,
                 cr,
                 width,
                 height,

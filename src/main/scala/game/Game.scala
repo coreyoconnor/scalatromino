@@ -15,7 +15,6 @@ trait Game {
   @FunctionalInterface
   trait Renderer {
     def apply(
-        drawingArea: Ptr[GtkDrawingArea],
         cr: Ptr[cairo_t],
         width: CInt,
         height: CInt,
