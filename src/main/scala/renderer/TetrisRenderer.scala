@@ -9,7 +9,7 @@ import gtk.fluent.*
 import libcairo.all.*
 import scala.scalanative.unsafe.*
 
-object TetrisRenderer extends TetrisGame.Renderer:
+object TetrisRenderer:
   val minHeight = 768
   val minWidth = minHeight * 9 / 18
 
@@ -67,68 +67,160 @@ object TetrisRenderer extends TetrisGame.Renderer:
         )
     }
 
-  def apply(
-      cr: Ptr[cairo_t],
-      width: CInt,
-      height: CInt,
-      state: GameState,
-      deltaT: Double,
-      micros: Long
-  ): Unit = {
+  val render: TetrisGame.Renderer = {
+    (
+        cr: Ptr[cairo_t],
+        width: CInt,
+        height: CInt,
+        state: GameState,
+        deltaT: Double,
+        micros: Long
+    ) =>
 
-    val cs = colorScheme(micros, state.phase)
+      val cs = colorScheme(micros, state.phase)
 
-    cairo_set_source_rgb(
-      cr,
-      cs.background._1,
-      cs.background._2,
-      cs.background._3
-    )
-    cairo_rectangle(cr, 0, 0, width, height)
-    cairo_fill(cr)
+      cairo_set_source_rgb(
+        cr,
+        cs.background._1,
+        cs.background._2,
+        cs.background._3
+      )
+      cairo_rectangle(cr, 0, 0, width, height)
+      cairo_fill(cr)
 
-    val pieceSize = width / state.grid.width
+      val pieceSize = width / state.grid.width
 
-    for {
-      y <- 0 until state.grid.height
-      x <- 0 until state.grid.width
-    } {
-      if (state.grid(x, y).exists(_ != Grid.Cell.Empty)) {
-        cairo_set_source_rgb(cr, cs.gridFill._1, cs.gridFill._2, cs.gridFill._3)
-        cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
-        cairo_fill(cr)
-        cairo_set_source_rgb(
-          cr,
-          cs.gridOutline._1,
-          cs.gridOutline._2,
-          cs.gridOutline._3
-        )
-        cairo_set_line_width(cr, 2.0)
-        cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
-        cairo_stroke(cr)
-      } else {
-        cairo_set_source_rgb(
-          cr,
-          cs.backgroundGrid._1,
-          cs.backgroundGrid._2,
-          cs.backgroundGrid._3
-        )
-        cairo_set_line_width(cr, 1.0)
-        cairo_rectangle(cr, x * pieceSize, y * pieceSize, pieceSize, pieceSize)
-        cairo_stroke(cr)
+      for {
+        y <- 0 until state.grid.height
+        x <- 0 until state.grid.width
+      } {
+        if (state.grid(x, y).exists(_ != Grid.Cell.Empty)) {
+          cairo_set_source_rgb(
+            cr,
+            cs.gridFill._1,
+            cs.gridFill._2,
+            cs.gridFill._3
+          )
+          cairo_rectangle(
+            cr,
+            x * pieceSize,
+            y * pieceSize,
+            pieceSize,
+            pieceSize
+          )
+          cairo_fill(cr)
+          cairo_set_source_rgb(
+            cr,
+            cs.gridOutline._1,
+            cs.gridOutline._2,
+            cs.gridOutline._3
+          )
+          cairo_set_line_width(cr, 2.0)
+          cairo_rectangle(
+            cr,
+            x * pieceSize,
+            y * pieceSize,
+            pieceSize,
+            pieceSize
+          )
+          cairo_stroke(cr)
+        } else {
+          cairo_set_source_rgb(
+            cr,
+            cs.backgroundGrid._1,
+            cs.backgroundGrid._2,
+            cs.backgroundGrid._3
+          )
+          cairo_set_line_width(cr, 1.0)
+          cairo_rectangle(
+            cr,
+            x * pieceSize,
+            y * pieceSize,
+            pieceSize,
+            pieceSize
+          )
+          cairo_stroke(cr)
+        }
       }
-    }
 
-    state.activePiece foreach { activePiece =>
-      val layout = PieceLayout(activePiece.piece, activePiece.rotation)
+      state.activePiece foreach { activePiece =>
+        val layout = PieceLayout(activePiece.piece, activePiece.rotation)
+
+        for {
+          y <- 0 until layout.height
+          x <- 0 until layout.width
+        } {
+          if (layout(x, y)) {
+            val outX = activePiece.posX + x - layout.centerX
+            val outY = activePiece.posY + y - layout.centerY
+
+            cairo_set_source_rgb(
+              cr,
+              cs.activeFill._1,
+              cs.activeFill._2,
+              cs.activeFill._3
+            )
+            cairo_rectangle(
+              cr,
+              outX * pieceSize,
+              outY * pieceSize,
+              pieceSize,
+              pieceSize
+            )
+            cairo_fill(cr)
+            cairo_set_source_rgb(
+              cr,
+              cs.activeOutline._1,
+              cs.activeOutline._2,
+              cs.activeOutline._3
+            )
+            cairo_set_line_width(cr, 2.0)
+            cairo_rectangle(
+              cr,
+              outX * pieceSize,
+              outY * pieceSize,
+              pieceSize,
+              pieceSize
+            )
+            cairo_stroke(cr)
+          }
+        }
+      }
+  }
+
+  val renderNextPiece: TetrisGame.Renderer = {
+    (
+        cr: Ptr[cairo_t],
+        width: CInt,
+        height: CInt,
+        state: GameState,
+        deltaT: Double,
+        micros: Long
+    ) =>
+      val cs = colorScheme(0, state.phase)
+
+      cairo_set_source_rgb(
+        cr,
+        cs.background._1,
+        cs.background._2,
+        cs.background._3
+      )
+      cairo_rectangle(cr, 0, 0, width, height)
+      cairo_fill(cr)
+
+      val pieceSize = width / 6
+
+      val layout = PieceLayout(state.nextPiece, Rotation.CW0)
+
+      cairo_translate(cr, pieceSize * 3, pieceSize * 2)
 
       for {
         y <- 0 until layout.height
         x <- 0 until layout.width
       } {
         if (layout(x, y)) {
-          val outX = activePiece.posX + x - layout.centerX
-          val outY = activePiece.posY + y - layout.centerY
+          val outX = x - layout.centerX
+          val outY = y - layout.centerY
 
           cairo_set_source_rgb(
             cr,
@@ -161,70 +253,6 @@ object TetrisRenderer extends TetrisGame.Renderer:
           cairo_stroke(cr)
         }
       }
-    }
   }
 
-  def renderNextPiece(
-      cr: Ptr[cairo_t],
-      width: CInt,
-      height: CInt,
-      state: GameState
-  ): Unit = {
-    val cs = colorScheme(0, state.phase)
-
-    cairo_set_source_rgb(
-      cr,
-      cs.background._1,
-      cs.background._2,
-      cs.background._3
-    )
-    cairo_rectangle(cr, 0, 0, width, height)
-    cairo_fill(cr)
-
-    val pieceSize = width / 6
-
-    val layout = PieceLayout(state.nextPiece, Rotation.CW0)
-
-    cairo_translate(cr, pieceSize * 3, pieceSize * 2)
-
-    for {
-      y <- 0 until layout.height
-      x <- 0 until layout.width
-    } {
-      if (layout(x, y)) {
-        val outX = x - layout.centerX
-        val outY = y - layout.centerY
-
-        cairo_set_source_rgb(
-          cr,
-          cs.activeFill._1,
-          cs.activeFill._2,
-          cs.activeFill._3
-        )
-        cairo_rectangle(
-          cr,
-          outX * pieceSize,
-          outY * pieceSize,
-          pieceSize,
-          pieceSize
-        )
-        cairo_fill(cr)
-        cairo_set_source_rgb(
-          cr,
-          cs.activeOutline._1,
-          cs.activeOutline._2,
-          cs.activeOutline._3
-        )
-        cairo_set_line_width(cr, 2.0)
-        cairo_rectangle(
-          cr,
-          outX * pieceSize,
-          outY * pieceSize,
-          pieceSize,
-          pieceSize
-        )
-        cairo_stroke(cr)
-      }
-    }
-  }
 end TetrisRenderer

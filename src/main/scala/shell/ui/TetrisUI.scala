@@ -13,6 +13,9 @@ import libcairo.all.*
 import scala.scalanative.unsafe.*
 
 object TetrisUI:
+  private val render = TetrisRenderer.render
+  private val renderNextPiece = TetrisRenderer.renderNextPiece
+
   val activate = CFuncPtr2.fromScalaFunction {
     (application: Ptr[GtkApplication], data: gpointer) =>
       val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
@@ -31,47 +34,13 @@ object TetrisUI:
             height: CInt,
             data: gpointer
         ) =>
-          {
-            val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
+          val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
 
-            (!sessionRef).priorMicros match {
-              case None => {
-                val micros = g_get_monotonic_time().value
-                (!sessionRef).state foreach { state =>
-                  (!sessionRef).renderer(
-                    cr,
-                    width,
-                    height,
-                    state,
-                    0,
-                    micros
-                  )
-                }
-                (!sessionRef).priorMicros = Some(micros)
-                (!sessionRef).priorRenderMicros = Some(micros)
+          RefreshWidget.renderPrimary(!sessionRef) {
+            (deltaRenderT, renderMicros) =>
+              (!sessionRef).state foreach { state =>
+                render(cr, width, height, state, deltaRenderT, renderMicros)
               }
-              case Some(micros) => {
-                val deltaMicros = (!sessionRef).priorRenderMicros match {
-                  case None => 20000
-                  case Some(priorRenderMicros) => {
-                    micros - priorRenderMicros
-                  }
-                }
-                val deltaT = deltaMicros.toDouble / 1000000.0
-                (!sessionRef).priorRenderMicros = Some(micros)
-
-                (!sessionRef).state foreach { state =>
-                  (!sessionRef).renderer(
-                    cr,
-                    width,
-                    height,
-                    state,
-                    deltaT,
-                    micros
-                  )
-                }
-              }
-            }
           }
       }
 
@@ -86,13 +55,18 @@ object TetrisUI:
           {
             val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
 
-            (!sessionRef).state foreach { state =>
-              TetrisRenderer.renderNextPiece(
-                cr,
-                width,
-                height,
-                state
-              )
+            RefreshWidget.renderSecondary(!sessionRef) {
+              (deltaRenderT, renderMicros) =>
+                (!sessionRef).state foreach { state =>
+                  renderNextPiece(
+                    cr,
+                    width,
+                    height,
+                    state,
+                    deltaRenderT,
+                    renderMicros
+                  )
+                }
             }
           }
       }

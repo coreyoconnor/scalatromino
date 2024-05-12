@@ -21,3 +21,35 @@ object RefreshWidget:
       GDestroyNotify(null)
     )
   }
+
+  def renderPrimary(session: Session[?])(f: (Double, Long) => Unit): Unit =
+    session.priorMicros.foreach { micros =>
+      val renderMicros = g_get_monotonic_time().value
+      val deltaRenderMicros = session.priorRenderMicros match {
+        case None => 20000
+        case Some(priorRenderMicros) => {
+          renderMicros - priorRenderMicros
+        }
+      }
+      val deltaRenderT = deltaRenderMicros.toDouble / 1000000.0
+
+      f(deltaRenderT, renderMicros)
+
+      session.priorRenderMicros = Some(renderMicros)
+    }
+
+  def renderSecondary(session: Session[?])(f: (Double, Long) => Unit): Unit =
+    session.priorMicros.foreach { micros =>
+      val renderMicros = g_get_monotonic_time().value
+      val deltaRenderMicros = session.priorRenderMicros match {
+        case None => 20000
+        case Some(priorRenderMicros) => {
+          renderMicros - priorRenderMicros
+        }
+      }
+      val deltaRenderT = deltaRenderMicros.toDouble / 1000000.0
+
+      f(deltaRenderT, renderMicros)
+    }
+
+end RefreshWidget

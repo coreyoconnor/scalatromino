@@ -12,10 +12,11 @@ object StateUpdater:
   def tick = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
+      val micros = g_get_monotonic_time().value
+
       val sessionRef = data.value.asPtr[Session[?]]
       val session = !sessionRef
 
-      val micros = g_get_monotonic_time().value
       val deltaMicros = session.priorMicros match {
         case None              => 20000
         case Some(priorMicros) => micros - priorMicros
