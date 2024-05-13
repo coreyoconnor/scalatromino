@@ -23,66 +23,11 @@ object TetrisUI:
       val mainArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
       val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
 
-      RefreshWidget.startRefresh(mainArea.asPtr[GtkWidget])
-      RefreshWidget.startRefresh(nextPieceArea.asPtr[GtkWidget])
-
-      val drawMainArea = CFuncPtr5.fromScalaFunction {
-        (
-            mainArea: Ptr[GtkDrawingArea],
-            cr: Ptr[cairo_t],
-            width: CInt,
-            height: CInt,
-            data: gpointer
-        ) =>
-          val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-
-          RefreshWidget.renderPrimary(!sessionRef) {
-            (deltaRenderT, renderMicros) =>
-              (!sessionRef).state foreach { state =>
-                render(cr, width, height, state, deltaRenderT, renderMicros)
-              }
-          }
-      }
-
-      val drawNextPiece = CFuncPtr5.fromScalaFunction {
-        (
-            nextPiece: Ptr[GtkDrawingArea],
-            cr: Ptr[cairo_t],
-            width: CInt,
-            height: CInt,
-            data: gpointer
-        ) =>
-          {
-            val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-
-            RefreshWidget.renderSecondary(!sessionRef) {
-              (deltaRenderT, renderMicros) =>
-                (!sessionRef).state foreach { state =>
-                  renderNextPiece(
-                    cr,
-                    width,
-                    height,
-                    state,
-                    deltaRenderT,
-                    renderMicros
-                  )
-                }
-            }
-          }
-      }
-
-      gtk_drawing_area_set_draw_func(
-        mainArea,
-        drawMainArea.asInstanceOf[GtkDrawingAreaDrawFunc],
-        data,
-        GDestroyNotify(null)
+      RenderToDrawingArea.startRender(TetrisGame)(sessionRef, mainArea)(
+        TetrisRenderer.render
       )
-
-      gtk_drawing_area_set_draw_func(
-        nextPieceArea,
-        drawNextPiece.asInstanceOf[GtkDrawingAreaDrawFunc],
-        data,
-        GDestroyNotify(null)
+      RenderToDrawingArea.startRender(TetrisGame)(sessionRef, nextPieceArea)(
+        TetrisRenderer.renderNextPiece
       )
 
       val gameAreaKeyController = gtk_event_controller_key_new()
