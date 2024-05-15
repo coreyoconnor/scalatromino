@@ -20,7 +20,7 @@ import scala.scalanative.unsafe.*
   )
 
   val session = stackalloc[Session[TetrisGame.type]](1)
-  !session = new Session(TetrisGame)(tetris.GameState, TetrisKeyBindings)
+  !session = new Session(TetrisGame)(tetris.GameState)
 
   g_signal_connect(
     app,

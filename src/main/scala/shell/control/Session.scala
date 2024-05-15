@@ -7,8 +7,7 @@ import scala.collection.mutable
 type RendererId = String
 
 class Session[G <: Game](val game: G)(
-    val updater: game.Updater,
-    val bindings: game.Bindings
+    val updater: game.Updater
 ):
   val renders: mutable.Map[RendererId, game.Renderer] = mutable.Map.empty
 
@@ -44,4 +43,10 @@ class Session[G <: Game](val game: G)(
       )
     }
   }
+
+  val inputSource: mutable.Map[String, game.Bindings] = mutable.Map.empty
+
+  def addInputSource(name: String, bindings: game.Bindings): Unit =
+    inputSource.update(name, bindings)
+
 end Session

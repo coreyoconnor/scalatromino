@@ -30,6 +30,8 @@ object TetrisUI:
         TetrisRenderer.renderNextPiece
       )
 
+      (!sessionRef).addInputSource("main", TetrisKeyBindings)
+
       val gameAreaKeyController = gtk_event_controller_key_new()
 
       val keyPressedCallback = CFuncPtr5.fromScalaFunction {
@@ -42,7 +44,8 @@ object TetrisUI:
         ) =>
           {
             val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-            (!sessionRef).bindings.keyBindings.lift(keyval.value.toInt) match {
+            val inputSource = (!sessionRef).inputSource("main")
+            inputSource.keyBindings.lift(keyval.value.toInt) match {
               case Some(input) => {
                 (!sessionRef).events += TetrisGame.InputStart(input)
                 gboolean(1)
@@ -61,7 +64,8 @@ object TetrisUI:
         ) =>
           {
             val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-            (!sessionRef).bindings.keyBindings.lift(keyval.value.toInt) match {
+            val inputSource = (!sessionRef).inputSource("main")
+            inputSource.keyBindings.lift(keyval.value.toInt) match {
               case Some(input) => {
                 (!sessionRef).events += TetrisGame.InputStop(input)
                 gboolean(1)
