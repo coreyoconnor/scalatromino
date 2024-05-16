@@ -57,7 +57,7 @@ class Session[G <: Game](val game: G)(
     val event = game.InputStart(input)
     currentInputState.get((id, input)) match {
       case None                              => events += event
-      case Some(current) if current != input => events += event
+      case Some(current) if current != event => events += event
       case Some(_)                           => ()
     }
     currentInputState.update((id, input), event)
@@ -67,7 +67,7 @@ class Session[G <: Game](val game: G)(
     val event = game.InputStop(input)
     currentInputState.get((id, input)) match {
       case None                              => events += event
-      case Some(current) if current != input => events += event
+      case Some(current) if current != event => events += event
       case Some(_)                           => ()
     }
     currentInputState.update((id, input), event)
