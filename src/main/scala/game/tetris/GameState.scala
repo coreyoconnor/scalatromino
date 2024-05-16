@@ -32,7 +32,7 @@ object GameState extends TetrisGame.Updater:
   ): GameState = {
     state.phase match {
       case Phase.NewActive => {
-        val piece = ActivePiece(state.nextPiece, 4, 0, Rotation.CW0)
+        val piece = Piece.Active(state.nextPiece, 4, 0, Piece.Rotation.CW0)
 
         if (state.grid.collides(piece)) {
           state.copy(phase = Phase.GameOver)
@@ -65,10 +65,10 @@ object GameState extends TetrisGame.Updater:
           val activePiece = state.activePiece.get
 
           val newRotation = events.foldLeft(activePiece.rotation) {
-            case (Rotation.CW0, InputStart(Input.RotateCW)) => Rotation.CW1
-            case (Rotation.CW1, InputStart(Input.RotateCW)) => Rotation.CW2
-            case (Rotation.CW2, InputStart(Input.RotateCW)) => Rotation.CW3
-            case (Rotation.CW3, InputStart(Input.RotateCW)) => Rotation.CW0
+            case (Piece.Rotation.CW0, InputStart(Input.RotateCW)) => Piece.Rotation.CW1
+            case (Piece.Rotation.CW1, InputStart(Input.RotateCW)) => Piece.Rotation.CW2
+            case (Piece.Rotation.CW2, InputStart(Input.RotateCW)) => Piece.Rotation.CW3
+            case (Piece.Rotation.CW3, InputStart(Input.RotateCW)) => Piece.Rotation.CW0
             case (rotation, _)                              => rotation
           }
 
@@ -143,7 +143,7 @@ case class GameState(
     tickSpeed: Double,
     descentSpeed: Double,
     grid: Grid,
-    activePiece: Option[ActivePiece],
+    activePiece: Option[Piece.Active],
     nextPiece: Piece,
     phase: GameState.Phase
 ) {

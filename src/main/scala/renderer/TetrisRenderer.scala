@@ -207,7 +207,7 @@ object TetrisRenderer:
 
       val pieceSize = width / 6
 
-      val layout = PieceLayout(state.nextPiece, Rotation.CW0)
+      val layout = PieceLayout(state.nextPiece, Piece.Rotation.CW0)
 
       cairo_translate(cr, pieceSize * 3, pieceSize * 2)
 

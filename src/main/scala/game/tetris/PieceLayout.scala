@@ -1,5 +1,7 @@
 package game.tetris
 
+import Piece.Rotation
+
 case class PieceLayout(
     grid: Seq[Boolean],
     centerX: Int,

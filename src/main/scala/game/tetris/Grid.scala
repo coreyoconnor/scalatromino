@@ -37,7 +37,7 @@ case class Grid(
       }
     }
 
-  def collides(piece: ActivePiece): Boolean =
+  def collides(piece: Piece.Active): Boolean =
     collides(PieceLayout(piece.piece, piece.rotation), piece.posX, piece.posY)
 
   def collides(layout: PieceLayout, posX: Int, posY: Int): Boolean = {
@@ -54,14 +54,14 @@ case class Grid(
     occupancy.contains(true)
   }
 
-  def cannotDescend(piece: ActivePiece): Boolean =
+  def cannotDescend(piece: Piece.Active): Boolean =
     collides(
       PieceLayout(piece.piece, piece.rotation),
       piece.posX,
       piece.posY + 1
     )
 
-  def fixActivePiece(startTime: Long, piece: ActivePiece): Grid = {
+  def fixActivePiece(startTime: Long, piece: Piece.Active): Grid = {
     val layout = PieceLayout(piece.piece, piece.rotation)
 
     val toAdd = for {
