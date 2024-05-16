@@ -19,6 +19,9 @@ object TetrisUI:
   val activate = CFuncPtr2.fromScalaFunction {
     (application: Ptr[GtkApplication], data: gpointer) =>
       val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
+      val session = !sessionRef
+
+      val window = gtk_application_window_new(application)
 
       val mainArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
       val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
@@ -30,69 +33,14 @@ object TetrisUI:
         TetrisRenderer.renderNextPiece
       )
 
-      (!sessionRef).addInputSource("main", TetrisKeyBindings)
-
       val gameAreaKeyController = gtk_event_controller_key_new()
 
-      val keyPressedCallback = CFuncPtr5.fromScalaFunction {
-        (
-            _: Ptr[GtkEventControllerKey],
-            keyval: guint,
-            _: guint,
-            _: GdkModifierType,
-            data: gpointer
-        ) =>
-          {
-            val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-            val inputSource = (!sessionRef).inputSource("main")
-            inputSource.keyBindings.lift(keyval.value.toInt) match {
-              case Some(input) => {
-                (!sessionRef).events += TetrisGame.InputStart(input)
-                gboolean(1)
-              }
-              case None => gboolean(0)
-            }
-          }
-      }
-      val keyReleasedCallback = CFuncPtr5.fromScalaFunction {
-        (
-            _: Ptr[GtkEventControllerKey],
-            keyval: guint,
-            _: guint,
-            _: GdkModifierType,
-            data: gpointer
-        ) =>
-          {
-            val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
-            val inputSource = (!sessionRef).inputSource("main")
-            inputSource.keyBindings.lift(keyval.value.toInt) match {
-              case Some(input) => {
-                (!sessionRef).events += TetrisGame.InputStop(input)
-                gboolean(1)
-              }
-              case None => gboolean(0)
-            }
-          }
-      }
-      g_signal_connect(
+      InputMapping.add(TetrisGame)(
+        sessionRef,
         gameAreaKeyController,
-        c"key-pressed",
-        keyPressedCallback,
-        data.value
-      )
-      g_signal_connect(
-        gameAreaKeyController,
-        c"key-released",
-        keyReleasedCallback,
-        data.value
+        TetrisKeyBindings
       )
 
-      gtk_event_controller_set_propagation_phase(
-        gameAreaKeyController,
-        GtkPropagationPhase.GTK_PHASE_CAPTURE
-      )
-
-      val window = gtk_application_window_new(application)
       gtk_widget_add_controller(window, gameAreaKeyController)
 
       gtk_widget_add_tick_callback(

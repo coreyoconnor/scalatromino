@@ -4,6 +4,7 @@ import game.Game
 
 import scala.collection.mutable
 
+type ControllerId = String
 type RendererId = String
 
 class Session[G <: Game](val game: G)(
@@ -44,9 +45,32 @@ class Session[G <: Game](val game: G)(
     }
   }
 
-  val inputSource: mutable.Map[String, game.Bindings] = mutable.Map.empty
+  val inputSource: mutable.Map[ControllerId, game.Bindings] = mutable.Map.empty
 
-  def addInputSource(name: String, bindings: game.Bindings): Unit =
-    inputSource.update(name, bindings)
+  def addInputSource(id: ControllerId, bindings: game.Bindings): Unit =
+    inputSource.update(id, bindings)
+
+  val currentInputState: mutable.Map[(ControllerId, game.Input), game.Event] =
+    mutable.Map.empty
+
+  def emitInputStart(id: ControllerId, input: game.Input): Unit = {
+    val event = game.InputStart(input)
+    currentInputState.get((id, input)) match {
+      case None                              => events += event
+      case Some(current) if current != input => events += event
+      case Some(_)                           => ()
+    }
+    currentInputState.update((id, input), event)
+  }
+
+  def emitInputStop(id: ControllerId, input: game.Input): Unit = {
+    val event = game.InputStop(input)
+    currentInputState.get((id, input)) match {
+      case None                              => events += event
+      case Some(current) if current != input => events += event
+      case Some(_)                           => ()
+    }
+    currentInputState.update((id, input), event)
+  }
 
 end Session

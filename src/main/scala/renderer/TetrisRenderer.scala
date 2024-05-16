@@ -3,9 +3,6 @@ package renderer
 import game.TetrisGame
 import game.tetris._
 
-import glib.all.*
-import gtk.all.*
-import gtk.fluent.*
 import libcairo.all.*
 import scala.scalanative.unsafe.*
 
