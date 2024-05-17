@@ -1,6 +1,4 @@
-package shell.control
-
-import game.Game
+package shell
 
 import gio.all.*
 import glib.all.*
@@ -44,9 +42,9 @@ object RenderToDrawingArea:
     }
 
   def startRender(
-      game: Game
-  )(sessionRef: Ptr[Session[game.type]], drawingArea: Ptr[GtkDrawingArea])(
-      renderer: game.Renderer
+      interactive: Interactive
+  )(sessionRef: Ptr[Session[interactive.type]], drawingArea: Ptr[GtkDrawingArea])(
+      renderer: interactive.Renderer
   ): Unit = {
     // totally stable, right?
     val rendererId: RendererId = drawingArea.toString
@@ -61,7 +59,7 @@ object RenderToDrawingArea:
           data: gpointer
       ) =>
         val rendererId: RendererId = actualDrawingArea.toString
-        val sessionRef = data.value.asPtr[Session[game.type]]
+        val sessionRef = data.value.asPtr[Session[interactive.type]]
         val session = !sessionRef
 
         withRenderTiming(rendererId, session) { (deltaRenderT, renderMicros) =>

@@ -26,7 +26,7 @@
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
-            depsSha256 = "sha256-/LTs3/n+qpDZe/LTn/WsP4Pqioocl68FIghu64qIijc=";
+            depsSha256 = "sha256-oanfXUUAoIwTMr+gRm/TwzhQr0orxFseAkpRBJq5FnY=";
             buildPhase = ''
               sbt compile
             '';

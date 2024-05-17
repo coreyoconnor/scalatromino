@@ -1,9 +1,9 @@
-package shell.ui
+package shell.tetris
 
 import game.*
 import game.tetris.*
 import renderer.TetrisRenderer
-import shell.control.*
+import shell.*
 
 import gio.all.*
 import glib.all.*

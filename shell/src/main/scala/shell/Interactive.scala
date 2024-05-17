@@ -1,10 +1,10 @@
-package game
+package shell
 
 import gtk.all.*
 import libcairo.all.*
 import scala.scalanative.unsafe.*
 
-trait Game {
+trait Interactive {
   type Input
   type State
 

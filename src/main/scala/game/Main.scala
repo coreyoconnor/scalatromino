@@ -3,8 +3,8 @@ package game
 import game.TetrisGame
 import game.tetris
 import renderer.TetrisRenderer
-import shell.control.*
-import shell.ui.{TetrisUI, TetrisKeyBindings}
+import shell.*
+import shell.tetris.{TetrisUI, TetrisKeyBindings}
 
 import gio.all.*
 import gtk.all.*

@@ -1,6 +1,4 @@
-package shell.control
-
-import game.Game
+package shell
 
 import glib.all.*
 import gtk.all.*

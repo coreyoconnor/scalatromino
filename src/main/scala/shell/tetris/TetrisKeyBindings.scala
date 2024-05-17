@@ -1,4 +1,4 @@
-package shell.ui
+package shell.tetris
 
 import game.TetrisGame
 import glib.all.*

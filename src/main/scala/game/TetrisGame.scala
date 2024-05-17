@@ -1,6 +1,8 @@
 package game
 
-object TetrisGame extends Game {
+import shell.Interactive
+
+object TetrisGame extends Interactive {
   enum Input:
     case Left, Right, RotateCW, Drop
 

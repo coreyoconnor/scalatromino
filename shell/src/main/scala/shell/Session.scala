@@ -1,21 +1,19 @@
-package shell.control
-
-import game.Game
+package shell
 
 import scala.collection.mutable
 
 type ControllerId = String
 type RendererId = String
 
-class Session[G <: Game](val game: G)(
-    val updater: game.Updater
+class Session[I <: Interactive](val interactive: I)(
+    val updater: interactive.Updater
 ):
-  val renders: mutable.Map[RendererId, game.Renderer] = mutable.Map.empty
+  val renders: mutable.Map[RendererId, interactive.Renderer] = mutable.Map.empty
 
-  def addRender(id: String)(renderer: game.Renderer): Unit =
+  def addRender(id: String)(renderer: interactive.Renderer): Unit =
     renders += id -> renderer
 
-  var state: Option[game.State] = None
+  var state: Option[interactive.State] = None
 
   /** Simulation time
     */
@@ -28,7 +26,7 @@ class Session[G <: Game](val game: G)(
   def updateRenderMicros(id: RendererId, micros: Long): Unit =
     priorRenderMicros.update(id, micros)
 
-  val events: collection.mutable.Buffer[game.Event] =
+  val events: collection.mutable.Buffer[interactive.Event] =
     collection.mutable.Buffer.empty
 
   def update(
@@ -45,16 +43,16 @@ class Session[G <: Game](val game: G)(
     }
   }
 
-  val inputSource: mutable.Map[ControllerId, game.Bindings] = mutable.Map.empty
+  val inputSource: mutable.Map[ControllerId, interactive.Bindings] = mutable.Map.empty
 
-  def addInputSource(id: ControllerId, bindings: game.Bindings): Unit =
+  def addInputSource(id: ControllerId, bindings: interactive.Bindings): Unit =
     inputSource.update(id, bindings)
 
-  val currentInputState: mutable.Map[(ControllerId, game.Input), game.Event] =
+  val currentInputState: mutable.Map[(ControllerId, interactive.Input), interactive.Event] =
     mutable.Map.empty
 
-  def emitInputStart(id: ControllerId, input: game.Input): Unit = {
-    val event = game.InputStart(input)
+  def emitInputStart(id: ControllerId, input: interactive.Input): Unit = {
+    val event = interactive.InputStart(input)
     currentInputState.get((id, input)) match {
       case None                              => events += event
       case Some(current) if current != event => events += event
@@ -63,8 +61,8 @@ class Session[G <: Game](val game: G)(
     currentInputState.update((id, input), event)
   }
 
-  def emitInputStop(id: ControllerId, input: game.Input): Unit = {
-    val event = game.InputStop(input)
+  def emitInputStop(id: ControllerId, input: interactive.Input): Unit = {
+    val event = interactive.InputStop(input)
     currentInputState.get((id, input)) match {
       case None                              => events += event
       case Some(current) if current != event => events += event

@@ -7,21 +7,39 @@ def pkgConfig(pkg: String, arg: String) = {
   s"pkg-config --$arg $pkg".!!.trim.split(" ").toList
 }
 
-lazy val root = project
-  .in(file("."))
+inThisBuild(Seq(
+  scalaVersion := "3.4.1",
+  version := "0.2.0-SNAPSHOT",
+  organization := "com.coreyoconnor",
+  versionScheme := Some("early-semver")
+))
+
+lazy val shell = project
+  .in(file("shell"))
   .enablePlugins(ScalaNativePlugin)
   .settings(
-    scalaVersion := "3.4.1",
     // https://github.com/indoorvivants/scala-native-gtk-bindings
     libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.5",
     nativeConfig := {
-      val out = nativeConfig.value
+      nativeConfig.value
         .withLTO(LTO.thin)
         .withMode(Mode.releaseFast)
         .withCompileOptions(pkgConfig("gtk4", "cflags"))
         .withLinkingOptions(pkgConfig("gtk4", "libs"))
+    }
+  )
 
-      out
+lazy val root = project
+  .in(file("."))
+  .dependsOn(shell)
+  .enablePlugins(ScalaNativePlugin)
+  .settings(
+    nativeConfig := {
+      nativeConfig.value
+        .withLTO(LTO.thin)
+        .withMode(Mode.releaseFast)
+        .withCompileOptions(pkgConfig("gtk4", "cflags"))
+        .withLinkingOptions(pkgConfig("gtk4", "libs"))
     },
     stage := {
       val exeFile = (Compile / nativeLink).value
@@ -30,5 +48,7 @@ lazy val root = project
       sbt.IO.copyFile(exeFile, targetFile)
 
       targetFile
-    }
+    },
+    publish := (shell / publish).value,
+    publishLocal := (shell / publishLocal).value
   )

@@ -1,6 +1,4 @@
-package shell.control
-
-import game.Game
+package shell
 
 import glib.all.*
 import gtk.all.*
@@ -8,11 +6,11 @@ import gtk.fluent.*
 import scala.scalanative.unsafe.*
 
 object InputMapping {
-  def add[G <: Game](game: G)(
-      sessionRef: Ptr[Session[game.type]],
+  def add[I <: Interactive](interactive: I)(
+      sessionRef: Ptr[Session[interactive.type]],
       controller: Ptr[GtkEventController],
-      bindings: game.Bindings
-  )(using Tag[Session[G]]): Ptr[GtkEventController] = {
+      bindings: interactive.Bindings
+  )(using Tag[Session[I]]): Ptr[GtkEventController] = {
     val keyPressedCallback = CFuncPtr5.fromScalaFunction {
       (
           actualController: Ptr[GtkEventControllerKey],
@@ -22,7 +20,7 @@ object InputMapping {
           data: gpointer
       ) =>
         {
-          val sessionRef = data.value.asPtr[Session[game.type]]
+          val sessionRef = data.value.asPtr[Session[interactive.type]]
           val session = !sessionRef
           val controllerId: ControllerId = actualController.toString
           val inputSource = session.inputSource(controllerId)
@@ -45,7 +43,7 @@ object InputMapping {
           data: gpointer
       ) =>
         {
-          val sessionRef = data.value.asPtr[Session[game.type]]
+          val sessionRef = data.value.asPtr[Session[interactive.type]]
           val controllerId: ControllerId = actualController.toString
           val session = !sessionRef
           val inputSource = session.inputSource(controllerId)
