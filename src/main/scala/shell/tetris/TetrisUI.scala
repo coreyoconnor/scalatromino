@@ -15,6 +15,7 @@ import scala.scalanative.unsafe.*
 object TetrisUI:
   private val render = TetrisRenderer.render
   private val renderNextPiece = TetrisRenderer.renderNextPiece
+  private val mainInputBindings = TetrisKeyBindings
 
   val activate = CFuncPtr2.fromScalaFunction {
     (application: Ptr[GtkApplication], data: gpointer) =>
@@ -27,10 +28,10 @@ object TetrisUI:
       val nextPieceArea = gtk_drawing_area_new().asPtr[GtkDrawingArea]
 
       RenderToDrawingArea.startRender(TetrisGame)(sessionRef, mainArea)(
-        TetrisRenderer.render
+        render
       )
       RenderToDrawingArea.startRender(TetrisGame)(sessionRef, nextPieceArea)(
-        TetrisRenderer.renderNextPiece
+        renderNextPiece
       )
 
       val gameAreaKeyController = gtk_event_controller_key_new()
@@ -38,7 +39,7 @@ object TetrisUI:
       InputMapping.add(TetrisGame)(
         sessionRef,
         gameAreaKeyController,
-        TetrisKeyBindings
+        mainInputBindings
       )
 
       gtk_widget_add_controller(window, gameAreaKeyController)
