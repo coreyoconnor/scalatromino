@@ -28,7 +28,10 @@
             src = self;
             depsSha256 = "sha256-4mqbTT8K/kOum+j6ok9CEqWxmLlzZhMJ/hwvuQvhR1Y=";
             buildPhase = ''
-              sbt compile
+              sbt 'show compile'
+            '';
+            depsWarmupCommand = ''
+              sbt '+dependencyUpdates ; +Test/updateFull ; +Test/compileIncSetup'
             '';
             installPhase = ''
               sbt 'show stage'
