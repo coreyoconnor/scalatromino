@@ -64,15 +64,7 @@ object TetrisRenderer:
         )
     }
 
-  val render: TetrisGame.Renderer = {
-    (
-        cr: Ptr[cairo_t],
-        width: CInt,
-        height: CInt,
-        state: GameState,
-        deltaT: Double,
-        micros: Long
-    ) =>
+  val render: TetrisGame.Renderer = { (cr, width, height, state, deltaT, micros) =>
 
       val cs = colorScheme(micros, state.phase)
 
@@ -185,15 +177,7 @@ object TetrisRenderer:
       }
   }
 
-  val renderNextPiece: TetrisGame.Renderer = {
-    (
-        cr: Ptr[cairo_t],
-        width: CInt,
-        height: CInt,
-        state: GameState,
-        deltaT: Double,
-        micros: Long
-    ) =>
+  val renderNextPiece: TetrisGame.Renderer = { (cr,width,height,state,deltaT,micros) =>
       val cs = colorScheme(0, state.phase)
 
       cairo_set_source_rgb(
