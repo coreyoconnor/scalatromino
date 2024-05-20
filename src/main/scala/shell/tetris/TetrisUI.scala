@@ -43,12 +43,7 @@ object TetrisUI:
 
       gtk_widget_add_controller(window, gameAreaKeyController)
 
-      gtk_widget_add_tick_callback(
-        window.asPtr[GtkWidget],
-        StateUpdater.tick.asInstanceOf[GtkTickCallback],
-        data,
-        GDestroyNotify(null)
-      )
+      UITickStateUpdater.start(window.asPtr[GtkWidget], sessionRef)
 
       val startGameButton = gtk_button_new_with_label(c"Start")
 

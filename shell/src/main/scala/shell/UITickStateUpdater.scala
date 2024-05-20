@@ -6,7 +6,7 @@ import gtk.fluent.*
 
 import scala.scalanative.unsafe.*
 
-object StateUpdater:
+object UITickStateUpdater:
   def tick = CFuncPtr3.fromScalaFunction {
     (_: Ptr[GtkWidget], _: Ptr[GdkFrameClock], data: gpointer) =>
 
@@ -27,8 +27,18 @@ object StateUpdater:
       (!sessionRef).events.clear()
       gboolean(1)
   }
-end StateUpdater
+
+  def start[I <: Interactive](owner: Ptr[GtkWidget], sessionRef: Ptr[Session[I]]): Unit = {
+    gtk_widget_add_tick_callback(
+      owner,
+      tick.asInstanceOf[GtkTickCallback],
+      gpointer(sessionRef.asPtr[Byte]),
+      GDestroyNotify(null)
+    )
+  }
+
+end UITickStateUpdater
 
 @FunctionalInterface
-trait StateUpdater[S, E]:
+trait UITickStateUpdater[S, E]:
   def apply(deltaT: Double, micros: Long, events: Seq[E], state: S): S
