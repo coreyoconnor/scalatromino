@@ -6,12 +6,17 @@ import renderer.TetrisRenderer
 import shell.*
 import shell.tetris.{TetrisUI, TetrisKeyBindings}
 
+import glib.functions.g_bytes_get_data
 import gio.all.*
 import gtk.all.*
 import gtk.fluent.*
 import scala.scalanative.unsafe.*
 
 @main def main =
+  val testData = g_resources_lookup_data(c"/com/coreyoconnor/scalatromino/test.txt", GResourceLookupFlags.G_RESOURCE_LOOKUP_FLAGS_NONE, null)
+  val testContents = g_bytes_get_data(testData, null)
+  scalanative.libc.stdio.printf(c"WUB WUB %s\n", testContents.value)
+
   gtk_init()
 
   val app = gtk_application_new(

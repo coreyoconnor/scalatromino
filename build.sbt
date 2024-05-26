@@ -1,6 +1,7 @@
 lazy val stage = taskKey[File]("stage")
 
 import scala.scalanative.build._
+import scala.sys.process._
 
 def pkgConfig(pkg: String, arg: String) = {
   import sys.process.*
@@ -50,5 +51,23 @@ lazy val root = project
       targetFile
     },
     publish := (shell / publish).value,
-    publishLocal := (shell / publishLocal).value
+    publishLocal := (shell / publishLocal).value,
+    Compile / resourceGenerators += Def.task {
+      val inputDir = (Compile / resourceDirectory).value
+      val input = inputDir / "main.gresource.xml"
+      val file = (Compile / resourceManaged).value / "scala-native" / "gresources.c"
+      IO.createDirectory(file.getParentFile())
+      val processResult = Process(
+        Seq(
+          "glib-compile-resources",
+          "--generate-source",
+          "--target",
+          file.toString(),
+          input.toString()
+        ),
+        inputDir
+      ) ! streams.value.log
+      assert(processResult == 0)
+      Seq(file)
+    }.taskValue
   )
