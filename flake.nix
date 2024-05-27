@@ -4,7 +4,6 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
 
   inputs.sbt.url = "github:zaninime/sbt-derivation/master";
-
   inputs.sbt.inputs.nixpkgs.follows = "nixpkgs";
 
   inputs.systems.url = "github:nix-systems/default";
@@ -39,15 +38,14 @@
               cp target/scalatromino $out/bin/
             '';
             buildInputs = with pkgs; [
-              gtk4
-            ];
-            nativeBuildInputs = with pkgs; [
               boehmgc
               libunwind
-              pkg-config
-              stdenv
-              which
+              gtk4
               zlib
+            ];
+            nativeBuildInputs = with pkgs; [
+              pkg-config
+              which
             ];
             env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
             hardeningDisable = [ "fortify" ];
