@@ -24,14 +24,33 @@
           inherit system;
           overlays = [ typelevel-nix.overlays.default ];
         };
+        buildTools = with pkgs; [
+          pkg-config
+          which
+          glib.dev
+        ];
+        libraries = with pkgs; [
+          boehmgc
+          cairo
+          gdk-pixbuf
+          graphene
+          harfbuzz
+          libunwind
+          glib
+          gtk4
+          pango
+          vulkan-headers
+          vulkan-loader
+          zlib
+        ];
       in
-      {
+      rec {
         packages = {
           default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages.stdenv; }) {
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
-            depsSha256 = "sha256-oanfXUUAoIwTMr+gRm/TwzhQr0orxFseAkpRBJq5FnY=";
+            depsSha256 = "sha256-V+z1OfjlWT5bsxGd3kqKi0MDuLxybUrSg/Yrz7yhL2k=";
             buildPhase = ''
               sbt 'show compile'
             '';
@@ -43,45 +62,24 @@
               mkdir -p $out/bin
               cp target/scalatromino $out/bin/
             '';
-            buildInputs = with pkgs; [
-              boehmgc
-              libunwind
-              gtk4
-              zlib
-            ];
-            nativeBuildInputs = with pkgs; [
-              pkg-config
-              which
-              glib.dev
-            ];
-            env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
+            buildInputs = libraries;
+            nativeBuildInputs = buildTools;
             hardeningDisable = [ "fortify" ];
           };
         };
 
         devShell = pkgs.devshell.mkShell {
-          imports = [ typelevel-nix.typelevelShell ];
+          imports = [ typelevel-nix.typelevelShell "${pkgs.devshell.extraModulesDir}/language/c.nix"];
           name = "scalatromino-devshell";
           typelevelShell = {
             jdk.package = pkgs.jdk21;
-            native = {
-              enable = true;
-              libraries = with pkgs; [
-                boehmgc
-                libunwind
-                gtk4
-                zlib
-              ];
-            };
+            native.enable = true;
           };
-          packages = with pkgs; [
-            pkg-config
-            which
-            glib.dev
-          ];
-          env = [
-            { name = "NIX_CFLAGS_COMPILE"; value = "-Wno-unused-command-line-argument"; }
-          ];
+          packagesFrom = [ packages.default ];
+          language.c = {
+            inherit libraries;
+            includes = libraries;
+          };
         };
     });
 }

@@ -25,8 +25,8 @@ lazy val shell = project
       nativeConfig.value
         .withLTO(LTO.thin)
         .withMode(Mode.releaseFast)
-        .withCompileOptions(pkgConfig("gtk4", "cflags"))
-        .withLinkingOptions(pkgConfig("gtk4", "libs"))
+        .withCompileOptions(pkgConfig("gtk4", "cflags") :+ "-Wno-unused-command-line-argument")
+        .withLinkingOptions(pkgConfig("gtk4", "libs") :+ "-Wno-unused-command-line-argument")
     }
   )
 
@@ -39,8 +39,8 @@ lazy val root = project
       nativeConfig.value
         .withLTO(LTO.thin)
         .withMode(Mode.releaseFast)
-        .withCompileOptions(pkgConfig("gtk4", "cflags"))
-        .withLinkingOptions(pkgConfig("gtk4", "libs"))
+        .withCompileOptions(pkgConfig("gtk4", "cflags") :+ "-Wno-unused-command-line-argument")
+        .withLinkingOptions(pkgConfig("gtk4", "libs") :+ "-Wno-unused-command-line-argument")
     },
     stage := {
       val exeFile = (Compile / nativeLink).value
