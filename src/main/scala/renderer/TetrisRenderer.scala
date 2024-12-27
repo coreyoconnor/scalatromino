@@ -104,7 +104,7 @@ object TetrisRenderer:
             cs.gridOutline._2,
             cs.gridOutline._3
           )
-          cairo_set_line_width(cr, 2.0)
+          cairo_set_line_width(cr, 2.5)
           cairo_rectangle(
             cr,
             x * pieceSize,
