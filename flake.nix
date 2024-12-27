@@ -1,27 +1,33 @@
 {
   description = "scalatromino";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-
-  inputs.sbt.url = "github:zaninime/sbt-derivation/master";
-  inputs.sbt.inputs.nixpkgs.follows = "nixpkgs";
-
-  inputs.systems.url = "github:nix-systems/default";
+  inputs = {
+    flake-utils.follows = "typelevel-nix/flake-utils";
+    nixpkgs.follows = "typelevel-nix/nixpkgs";
+    sbt = {
+      url = "github:zaninime/sbt-derivation/master";
+      inputs.nixpkgs.follows = "typelevel-nix/nixpkgs";
+    };
+    typelevel-nix.url = "github:typelevel/typelevel-nix";
+  };
 
   outputs = {
     self,
+    flake-utils,
     nixpkgs,
     sbt,
-    systems
+    typelevel-nix
   }:
-    let
-      eachSystem = nixpkgs.lib.genAttrs (import systems);
-    in
-    {
-      packages = eachSystem (system:
-        let pkgs = nixpkgs.legacyPackages.${system}; in
-        {
-          default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages_15.stdenv; }) {
+    flake-utils.lib.eachDefaultSystem (system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ typelevel-nix.overlays.default ];
+        };
+      in
+      {
+        packages = {
+          default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages.stdenv; }) {
             pname = "scalatromino";
             version = "0.1.0";
             src = self;
@@ -46,11 +52,36 @@
             nativeBuildInputs = with pkgs; [
               pkg-config
               which
+              glib.dev
             ];
             env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
             hardeningDisable = [ "fortify" ];
           };
-        }
-      );
-    };
+        };
+
+        devShell = pkgs.devshell.mkShell {
+          imports = [ typelevel-nix.typelevelShell ];
+          name = "scalatromino-devshell";
+          typelevelShell = {
+            jdk.package = pkgs.jdk21;
+            native = {
+              enable = true;
+              libraries = with pkgs; [
+                boehmgc
+                libunwind
+                gtk4
+                zlib
+              ];
+            };
+          };
+          packages = with pkgs; [
+            pkg-config
+            which
+            glib.dev
+          ];
+          env = [
+            { name = "NIX_CFLAGS_COMPILE"; value = "-Wno-unused-command-line-argument"; }
+          ];
+        };
+    });
 }
