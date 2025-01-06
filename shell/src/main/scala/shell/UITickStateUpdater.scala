@@ -1,8 +1,8 @@
 package shell
 
-import glib.all.*
-import gtk.all.*
-import gtk.fluent.*
+import sn.gnome.glib.internal.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.gtk4.fluent.*
 
 import scala.scalanative.unsafe.*
 
@@ -21,11 +21,11 @@ object UITickStateUpdater:
       }
       val deltaT = deltaMicros.toDouble / 1000000.0
 
-      session.update(deltaT, micros)
+      session.update(deltaT, micros.longValue())
 
-      (!sessionRef).priorMicros = Some(micros)
+      (!sessionRef).priorMicros = Some(micros.longValue())
       (!sessionRef).events.clear()
-      gboolean(1)
+      gboolean(gint(1))
   }
 
   def start[I <: Interactive](owner: Ptr[GtkWidget], sessionRef: Ptr[Session[I]]): Unit = {

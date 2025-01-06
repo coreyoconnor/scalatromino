@@ -20,7 +20,7 @@ lazy val shell = project
   .enablePlugins(ScalaNativePlugin)
   .settings(
     // https://github.com/indoorvivants/scala-native-gtk-bindings
-    libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.0.5",
+    libraryDependencies += "com.indoorvivants.gnome" %%% "gtk4" % "0.1.0",
     nativeConfig := {
       nativeConfig.value
         .withLTO(LTO.thin)

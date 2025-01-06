@@ -1,10 +1,10 @@
 package shell
 
-import gio.all.*
-import glib.all.*
-import gtk.all.*
-import gtk.fluent.*
-import libcairo.all.*
+import sn.gnome.gio.internal.*
+import sn.gnome.glib.internal.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.gtk4.fluent.*
+import sn.gnome.cairo.internal.*
 import scala.scalanative.unsafe.*
 
 object RenderToDrawingArea:
@@ -12,7 +12,7 @@ object RenderToDrawingArea:
     (widget: Ptr[GtkWidget], _: Ptr[GdkFrameClock], _: gpointer) =>
       {
         gtk_widget_queue_draw(widget)
-        gboolean(1)
+        gboolean(gint(1))
       }
   }
 
@@ -36,9 +36,9 @@ object RenderToDrawingArea:
       }
       val deltaRenderT = deltaRenderMicros.toDouble / 1000000.0
 
-      f(deltaRenderT, renderMicros)
+      f(deltaRenderT, renderMicros.longValue())
 
-      session.updateRenderMicros(rendererId, renderMicros)
+      session.updateRenderMicros(rendererId, renderMicros.longValue())
     }
 
   def startRender(

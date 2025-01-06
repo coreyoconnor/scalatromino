@@ -5,11 +5,11 @@ import game.tetris.*
 import renderer.TetrisRenderer
 import shell.*
 
-import gio.all.*
-import glib.all.*
-import gtk.all.*
-import gtk.fluent.*
-import libcairo.all.*
+import sn.gnome.gio.internal.*
+import sn.gnome.glib.internal.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.gtk4.fluent.*
+import sn.gnome.cairo.internal.*
 import scala.scalanative.unsafe.*
 
 object TetrisUI:
@@ -53,7 +53,7 @@ object TetrisUI:
           {
             val sessionRef = data.value.asPtr[Session[TetrisGame.type]]
             val micros = g_get_monotonic_time().value
-            (!sessionRef).state = Some(GameState.init(micros))
+            (!sessionRef).state = Some(GameState.init(micros.longValue()))
           }
       }
 

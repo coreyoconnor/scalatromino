@@ -1,7 +1,7 @@
 package shell
 
-import gtk.all.*
-import libcairo.all.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.cairo.internal.*
 import scala.scalanative.unsafe.*
 
 trait Interactive {

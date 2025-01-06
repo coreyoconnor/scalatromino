@@ -1,7 +1,7 @@
 package shell.tetris
 
 import game.TetrisGame
-import glib.all.*
+import sn.gnome.glib.internal.*
 
 object TetrisKeyBindings extends TetrisGame.Bindings:
   val keyBindings: PartialFunction[Int, TetrisGame.Input] = {

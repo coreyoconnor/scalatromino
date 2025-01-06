@@ -1,8 +1,8 @@
 package shell
 
-import glib.all.*
-import gtk.all.*
-import gtk.fluent.*
+import sn.gnome.glib.internal.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.gtk4.fluent.*
 import scala.scalanative.unsafe.*
 
 object InputMapping {
@@ -27,9 +27,9 @@ object InputMapping {
           inputSource.keyBindings.lift(keyval.value.toInt) match {
             case Some(input) => {
               session.emitInputStart(controllerId, input)
-              gboolean(1)
+              gboolean(gint(1))
             }
-            case None => gboolean(0)
+            case None => gboolean(gint(0))
           }
         }
     }
@@ -50,9 +50,9 @@ object InputMapping {
           inputSource.keyBindings.lift(keyval.value.toInt) match {
             case Some(input) => {
               session.emitInputStop(controllerId, input)
-              gboolean(1)
+              gboolean(gint(1))
             }
-            case None => gboolean(0)
+            case None => gboolean(gint(0))
           }
         }
     }
@@ -61,13 +61,13 @@ object InputMapping {
       controller,
       c"key-pressed",
       keyPressedCallback,
-      gpointer(sessionRef.asPtr[Byte])
+      sessionRef.asPtr[Byte]
     )
     g_signal_connect(
       controller,
       c"key-released",
       keyReleasedCallback,
-      gpointer(sessionRef.asPtr[Byte])
+      sessionRef.asPtr[Byte]
     )
 
     gtk_event_controller_set_propagation_phase(

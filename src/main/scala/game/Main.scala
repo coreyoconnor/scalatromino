@@ -6,10 +6,10 @@ import renderer.TetrisRenderer
 import shell.*
 import shell.tetris.{TetrisUI, TetrisKeyBindings}
 
-import glib.functions.g_bytes_get_data
-import gio.all.*
-import gtk.all.*
-import gtk.fluent.*
+import sn.gnome.glib.internal.g_bytes_get_data
+import sn.gnome.gio.internal.*
+import sn.gnome.gtk4.internal.*
+import sn.gnome.gtk4.fluent.*
 import scala.scalanative.unsafe.*
 
 @main def main =

@@ -3,7 +3,7 @@ package renderer
 import game.TetrisGame
 import game.tetris._
 
-import libcairo.all.*
+import sn.gnome.cairo.internal.*
 import scala.scalanative.unsafe.*
 
 object TetrisRenderer:
