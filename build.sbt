@@ -9,8 +9,8 @@ def pkgConfig(pkg: String, arg: String) = {
 }
 
 inThisBuild(Seq(
-  scalaVersion := "3.4.1",
-  version := "0.2.0-SNAPSHOT",
+  scalaVersion := "3.6.2",
+  version := "0.3.0-SNAPSHOT",
   organization := "com.coreyoconnor",
   versionScheme := Some("early-semver")
 ))

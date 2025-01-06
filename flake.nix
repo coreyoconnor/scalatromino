@@ -48,9 +48,9 @@
         packages = {
           default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages.stdenv; }) {
             pname = "scalatromino";
-            version = "0.1.0";
+            version = "0.3.0";
             src = self;
-            depsSha256 = "sha256-V+z1OfjlWT5bsxGd3kqKi0MDuLxybUrSg/Yrz7yhL2k=";
+            depsSha256 = "sha256-7IkywdOhiKMPU0bDBTVCf/SoxtApT5maR1fCAwNmSYE=";
             buildPhase = ''
               sbt 'show compile'
             '';
