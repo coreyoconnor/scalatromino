@@ -48,9 +48,9 @@
         packages = {
           default = (sbt.mkSbtDerivation.${system}).withOverrides({ stdenv = pkgs.llvmPackages.stdenv; }) {
             pname = "scalatromino";
-            version = "0.3.0";
+            version = "0.4.0";
             src = self;
-            depsSha256 = "sha256-7IkywdOhiKMPU0bDBTVCf/SoxtApT5maR1fCAwNmSYE=";
+            depsSha256 = "sha256-KsGH4KjITaRBAU2nRFEB93+xc3H5BN0S88J+a3MOGXk=";
             buildPhase = ''
               sbt 'show compile'
             '';
@@ -64,6 +64,7 @@
             '';
             buildInputs = libraries;
             nativeBuildInputs = buildTools;
+            env.NIX_CFLAGS_COMPILE = "-Wno-unused-command-line-argument";
             hardeningDisable = [ "fortify" ];
           };
         };
@@ -72,10 +73,12 @@
           imports = [ typelevel-nix.typelevelShell "${pkgs.devshell.extraModulesDir}/language/c.nix"];
           name = "scalatromino-devshell";
           typelevelShell = {
-            jdk.package = pkgs.jdk21;
+            jdk.package = pkgs.jdk25;
             native.enable = true;
           };
-          packagesFrom = [ packages.default ];
+          packages = [
+            pkgs.samply
+          ];
           language.c = {
             inherit libraries;
             includes = libraries;
